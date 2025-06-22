@@ -112,7 +112,7 @@ function BusinessCard() {
             <Typography variant="body2" fontWeight={500}>8074175884 / 8555909245</Typography>
           </Stack>
           <Typography textAlign="center" variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            📍 Madhurawada, Visakhapatnam
+            📍 IT Sez Rushikonda, Visakhapatnam
           </Typography>
           <Stack direction="row" spacing={2} justifyContent="center" sx={{ mb: 2 }}>
             <IconButton

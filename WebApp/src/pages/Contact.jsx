@@ -1,15 +1,28 @@
-import { Box, Button } from '@mui/material';
-import DownloadIcon from '@mui/icons-material/Download';
-import QRCode from 'react-qr-code';
-import { motion } from 'framer-motion';
-import kpjLogo from '../assets/kpjLogo.svg';
+import {
+  Box,
+  Button,
+  Stack,
+  Typography,
+  IconButton,
+  Paper,
+} from "@mui/material";
+import DownloadIcon from "@mui/icons-material/Download";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+import InstagramIcon from "@mui/icons-material/Instagram";
+import EmailIcon from "@mui/icons-material/Email";
+import PhoneIcon from "@mui/icons-material/Phone";
+import QRCode from "react-qr-code";
+import { motion } from "framer-motion";
+import kpjLogo from "../assets/kpjLogo.svg";
 
 const contact = {
   name: "KPJ Tshirts",
   phone: "+918074175884",
   phone2: "+918555909245",
+  whatsapp: "+918143670894",
   email: "p7j6d7@gmail.com",
-  instagram: "@kpj_tshirts",
+  instagram: "kpj_tshirts",
+  location: "IT Sez Rushikonda, Visakhapatnam",
 };
 
 function generateVCard({ name, phone, phone2, email, instagram }) {
@@ -18,9 +31,9 @@ function generateVCard({ name, phone, phone2, email, instagram }) {
     `VERSION:3.0\n` +
     `FN:${name}\n` +
     `TEL;TYPE=CELL:${phone}\n` +
-    (phone2 ? `TEL;TYPE=CELL:${phone2}\n` : '') +
+    (phone2 ? `TEL;TYPE=CELL:${phone2}\n` : "") +
     `EMAIL:${email}\n` +
-    `NOTE:Instagram: ${instagram}\n` +
+    `NOTE:Instagram: @${instagram}\n` +
     `END:VCARD`
   );
 }
@@ -39,32 +52,138 @@ const Contact = () => {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -30 }}
-      transition={{ duration: 0.5 }}
-      style={{ padding: '2rem' }}
+    <Box
+      sx={{
+        minHeight: "80vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        bgcolor: "background.default",
+        py: 4,
+      }}
     >
-      <img src={kpjLogo} alt="KPJ Logo" style={{ height: 60, marginBottom: 16 }} />
-      <h2>Contact Me</h2>
-      <p>Phone: {contact.phone} / {contact.phone2}</p>
-      <p>Email: {contact.email}</p>
-      <p>Instagram: {contact.instagram}</p>
-      <Box sx={{ my: 2 }}>
-        <QRCode
-          value={`MECARD:N:${contact.name};TEL:${contact.phone};EMAIL:${contact.email};NOTE:${contact.instagram};;`}
-          size={128}
-        />
-      </Box>
-      <Button
-        variant="contained"
-        startIcon={<DownloadIcon />}
-        onClick={handleVCardDownload}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -30 }}
+        transition={{ duration: 0.5 }}
+        style={{ width: "100%" }}
       >
-        Download vCard
-      </Button>
-    </motion.div>
+        <Paper
+          elevation={8}
+          sx={{
+            maxWidth: 400,
+            mx: "auto",
+            p: 4,
+            borderRadius: 5,
+            backdropFilter: "blur(12px) saturate(180%)",
+            background: "#ACC1D2",
+            border: "1px solid rgba(255,255,255,0.25)",
+            boxShadow: 8,
+            textAlign: "center",
+          }}
+        >
+          <Box display="flex" justifyContent="center" mb={2}>
+            <img
+              src={kpjLogo}
+              alt="KPJ Logo"
+              style={{ height: 70, borderRadius: 12, padding: 8 }}
+            />
+          </Box>
+          <Typography variant="h5" fontWeight={700} gutterBottom>
+            KPJ Tshirts
+          </Typography>
+          <Typography variant="body2" color="text.secondary" gutterBottom>
+            A to Z T shirt needs | {contact.location}
+          </Typography>
+          <Stack
+            direction="row"
+            spacing={1}
+            alignItems="center"
+            justifyContent="center"
+            sx={{ my: 2 }}
+          >
+            <PhoneIcon color="primary" />
+            <Typography variant="body2" fontWeight={500}>
+              <a
+                href={`tel:${contact.phone}`}
+                style={{ textDecoration: "none", color: "inherit" }}
+              >
+                {contact.phone}
+              </a>
+              {contact.phone2 && (
+                <>
+                  {" / "}
+                  <a
+                    href={`tel:${contact.phone2}`}
+                    style={{ textDecoration: "none", color: "inherit" }}
+                  >
+                    {contact.phone2}
+                  </a>
+                </>
+              )}
+            </Typography>
+          </Stack>
+          <Stack
+            direction="row"
+            spacing={2}
+            justifyContent="center"
+            sx={{ mb: 2 }}
+          >
+            <IconButton
+              color="success"
+              href={`https://wa.me/${contact.whatsapp.replace("+", "")}`}
+              target="_blank"
+              rel="noopener"
+              sx={{ bgcolor: "white", boxShadow: 1 }}
+            >
+              <WhatsAppIcon />
+            </IconButton>
+            <IconButton
+              color="primary"
+              href={`mailto:${contact.email}`}
+              sx={{ bgcolor: "white", boxShadow: 1 }}
+            >
+              <EmailIcon />
+            </IconButton>
+            <IconButton
+              color="secondary"
+              href={`https://instagram.com/${contact.instagram.replace(
+                "@",
+                ""
+              )}`}
+              target="_blank"
+              rel="noopener"
+              sx={{ bgcolor: "white", boxShadow: 1 }}
+            >
+              <InstagramIcon />
+            </IconButton>
+          </Stack>
+          <Box sx={{ my: 3, display: "flex", justifyContent: "center" }}>
+            <QRCode
+              value={`MECARD:N:${contact.name};TEL:${contact.phone};EMAIL:${contact.email};NOTE:${contact.instagram};;`}
+              size={120}
+              style={{ background: "white", padding: 8, borderRadius: 8 }}
+            />
+          </Box>
+          <Button
+            variant="contained"
+            startIcon={<DownloadIcon />}
+            onClick={handleVCardDownload}
+            fullWidth
+            sx={{
+              fontWeight: 600,
+              letterSpacing: 1,
+              borderRadius: 3,
+              boxShadow: 2,
+              background: "linear-gradient(90deg, #ff512f 0%, #dd2476 100%)",
+            }}
+          >
+            Download vCard
+          </Button>
+        </Paper>
+      </motion.div>
+    </Box>
   );
 };
 
