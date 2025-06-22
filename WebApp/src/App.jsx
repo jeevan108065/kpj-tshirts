@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Home from './pages/Home';
 import About from './pages/About';
 import Contact from './pages/Contact';
+import kpjLogo from './assets/kpjLogo.svg'; // Adjust the path as necessary
 
 function App() {
   const [mode, setMode] = useState('light');
@@ -17,6 +18,7 @@ function App() {
       <CssBaseline />
       <AppBar position="static">
         <Toolbar>
+          <img src={kpjLogo} alt="KPJ Logo" style={{ height: 40, marginRight: 16 }} />
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
             My Digital Card
           </Typography>

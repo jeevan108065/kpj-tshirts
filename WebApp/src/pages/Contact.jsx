@@ -2,6 +2,7 @@ import { Box, Button } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/Download';
 import QRCode from 'react-qr-code';
 import { motion } from 'framer-motion';
+import kpjLogo from '../assets/kpjLogo.svg';
 
 const contact = {
   name: "KPJ Tshirts",
@@ -45,6 +46,7 @@ const Contact = () => {
       transition={{ duration: 0.5 }}
       style={{ padding: '2rem' }}
     >
+      <img src={kpjLogo} alt="KPJ Logo" style={{ height: 60, marginBottom: 16 }} />
       <h2>Contact Me</h2>
       <p>Phone: {contact.phone} / {contact.phone2}</p>
       <p>Email: {contact.email}</p>
