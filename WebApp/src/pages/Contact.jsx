@@ -1,14 +1,14 @@
 import { Box, Button } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/Download';
-import QRCode from 'qrcode.react';
+import QRCode from 'react-qr-code';
 import { motion } from 'framer-motion';
 
 const contact = {
-  name: "Your Name",
-  phone: "8074175884",
-  phone2: "8555909245",
-  email: "yourmail@example.com",
-  instagram: "@yourpage",
+  name: "KPJ Tshirts",
+  phone: "+918074175884",
+  phone2: "+918555909245",
+  email: "p7j6d7@gmail.com",
+  instagram: "@kpj_tshirts",
 };
 
 function generateVCard({ name, phone, phone2, email, instagram }) {
