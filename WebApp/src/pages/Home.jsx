@@ -6,80 +6,88 @@ import PremiumCotton from "../assets/landingImages/PremiumCotton.png";
 import PolyCottonBlend from "../assets/landingImages/PolyCottonBlend.jpeg";
 import PolyCottonEveryDay from "../assets/landingImages/PolyCottonEveryday.jpeg";
 import LandingAnimation from "../components/LandingAnimation";
+import SportsPerformance from "../assets/landingImages/SportsPerformance.jpeg";
+import AthleticMesh from "../assets/landingImages/AthleticMesh.jpeg";
+import EthnicPrint from "../assets/landingImages/EthnicPrint.jpeg";
+import FestiveEthnic from "../assets/landingImages/FestiveEthnic.jpeg";
+import EventSpecial from "../assets/landingImages/EventSpecial.jpeg";
+import Occasion from "../assets/landingImages/Occasion.png";
+import UniformCrew from "../assets/landingImages/UniformCrew.jpeg";
+import CorporateUniform from "../assets/landingImages/CorporateUniform.png";
 
 const tshirtDesigns = [
   {
-    name: "Cotton Classic Tee",
+    name: "Cotton Classic",
     image: ClassicCotton,
     description: "100% pure cotton for ultimate comfort and breathability.",
     category: "Cotton",
   },
   {
-    name: "Cotton Premium Tee",
+    name: "Cotton Premium",
     image: PremiumCotton,
     description: "Soft, durable cotton with a premium finish.",
     category: "Cotton",
   },
   {
-    name: "Poly Cotton Blend Tee",
+    name: "Poly Cotton Blend",
     image: PolyCottonBlend,
     description:
       "A perfect blend of polyester and cotton for softness and durability.",
     category: "Poly Cotton",
   },
   {
-    name: "Poly Cotton Everyday Tee",
+    name: "Poly Cotton Everyday",
     image: PolyCottonEveryDay,
     description:
       "Wrinkle-resistant and lightweight poly cotton for daily wear.",
     category: "Poly Cotton",
   },
   {
-    name: "Sports Performance Tee",
-    image: "/images/sports-performance.jpg",
+    name: "Sports Performance",
+    image: SportsPerformance,
     description: "Moisture-wicking fabric ideal for workouts and sports.",
     category: "Sports",
   },
   {
-    name: "Athletic Mesh Tee",
-    image: "/images/athletic-mesh.jpg",
+    name: "Athletic Mesh",
+    image: AthleticMesh,
     description:
       "Breathable mesh design for maximum airflow during activities.",
     category: "Sports",
   },
   {
-    name: "Ethnic Print Tee",
-    image: "/images/ethnic-print.jpg",
+    name: "Ethnic Print",
+    image: EthnicPrint,
     description: "Traditional patterns with a modern twist.",
     category: "Ethnic",
   },
   {
-    name: "Festive Ethnic Tee",
-    image: "/images/festive-ethnic.jpg",
+    name: "Festive Ethnic",
+    image: FestiveEthnic,
     description: "Celebrate culture with vibrant ethnic designs.",
     category: "Ethnic",
   },
   {
-    name: "Event Special Tee",
-    image: "/images/event-special.jpg",
-    description: "Custom tees for events, parties, and celebrations.",
+    name: "Event Special",
+    image: EventSpecial,
+    description: "Custom tshirts for events, parties, and celebrations.",
     category: "Event Based",
   },
   {
-    name: "Occasion Tee",
-    image: "/images/occasion.jpg",
+    name: "Occasion",
+    image: Occasion,
     description: "Designed for special occasions and gatherings.",
     category: "Event Based",
   },
   {
-    name: "Uniform Crew Tee",
-    image: "/images/uniform-crew.jpg",
+    name: "Uniform Crew",
+    image: UniformCrew,
     description: "Perfect for teams, staff, and organizations.",
     category: "Uniform",
   },
   {
-    name: "Corporate Uniform Tee",
-    image: "/images/corporate-uniform.jpg",
+    name: "Corporate Uniform",
+    image: CorporateUniform,
     description: "Professional look for corporate and institutional use.",
     category: "Uniform",
   },
