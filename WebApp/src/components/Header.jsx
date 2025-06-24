@@ -36,13 +36,13 @@ const Header = ({ mode, onModeChange }) => {
         >
           T-Shirts
         </Typography>
-        <Button color="inherit" component={Link} to="/">
+        <Button color="inherit" component={Link} to="/kpj-tshirts/">
           Home
         </Button>
-        <Button color="inherit" component={Link} to="/about">
+        <Button color="inherit" component={Link} to="/kpj-tshirts/about">
           About
         </Button>
-        <Button color="inherit" component={Link} to="/contact">
+        <Button color="inherit" component={Link} to="/kpj-tshirts/contact">
           Contact
         </Button>
         <IconButton

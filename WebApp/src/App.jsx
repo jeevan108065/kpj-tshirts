@@ -14,11 +14,9 @@ import Brightness7 from "@mui/icons-material/Brightness7";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Home from "./pages/Home";
-import About from "./pages/About";
-import Contact from "./pages/Contact";
 import kpjLogo from "./assets/kpjLogo.svg";
 import Header from "./components/Header";
+import AppRoutes from "./Routes";
 
 function App() {
   const [mode, setMode] = useState("light"); // Default mode is light
@@ -66,11 +64,7 @@ function App() {
                   maxWidth: "1230px",
                 }}
               >
-                <Routes location={location} key={location.pathname}>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/about" element={<About />} />
-                  <Route path="/contact" element={<Contact />} />
-                </Routes>
+                <AppRoutes />
               </Container>
             </motion.div>
           </AnimatePresence>
