@@ -9,7 +9,8 @@ import {
   Box,
   Container,
 } from "@mui/material";
-import { Brightness4, Brightness7 } from "@mui/icons-material";
+import Brightness4 from "@mui/icons-material/Brightness4";
+import Brightness7 from "@mui/icons-material/Brightness7";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";

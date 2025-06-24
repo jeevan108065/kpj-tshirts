@@ -1,4 +1,5 @@
-import { Brightness4, Brightness7 } from "@mui/icons-material";
+import Brightness4 from "@mui/icons-material/Brightness4";
+import Brightness7 from "@mui/icons-material/Brightness7";
 import { AppBar, Button, IconButton, Toolbar, Typography } from "@mui/material";
 import React from "react";
 import kpjLogo from "../assets/kpjLogo.svg";
@@ -44,12 +45,12 @@ const Header = ({ mode, onModeChange }) => {
         <Button color="inherit" component={Link} to="/contact">
           Contact
         </Button>
-        {/* <IconButton
+        <IconButton
           color="inherit"
           onClick={() => onModeChange(mode === "light" ? "dark" : "light")}
         >
           {mode === "light" ? <Brightness4 /> : <Brightness7 />}
-        </IconButton> */}
+        </IconButton>
       </Toolbar>
     </AppBar>
   );
