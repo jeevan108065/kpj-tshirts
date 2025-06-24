@@ -293,6 +293,9 @@ const Home = () => {
               <li>✔️ Unique, original designs</li>
               <li>✔️ Fast, reliable shipping</li>
               <li>✔️ Satisfaction guaranteed</li>
+              <li>✔️ All price ranges: affordable, trendy, and premium options</li>
+              <li>✔️ Trendy, stylish, and unique collections</li>
+              <li>✔️ Customization available for bulk and events</li>
             </ul>
           </section>
 
