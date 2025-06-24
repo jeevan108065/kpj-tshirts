@@ -59,7 +59,7 @@ const Contact = () => {
         alignItems: "center",
         justifyContent: "center",
         bgcolor: "background.default",
-        py: 4,
+        py: { xs: 1, sm: 4 },
       }}
     >
       <motion.div
@@ -73,8 +73,9 @@ const Contact = () => {
           elevation={8}
           sx={{
             maxWidth: 400,
+            width: "100%",
             mx: "auto",
-            p: 4,
+            p: { xs: 2, sm: 4 },
             borderRadius: 5,
             backdropFilter: "blur(12px) saturate(180%)",
             background: "#ACC1D2",
@@ -87,24 +88,29 @@ const Contact = () => {
             <img
               src={kpjLogo}
               alt="KPJ Logo"
-              style={{ height: 70, borderRadius: 12, padding: 8 }}
+              style={{
+                height: "clamp(40px, 10vw, 70px)",
+                borderRadius: 12,
+                padding: 8,
+                maxWidth: "100%",
+              }}
             />
           </Box>
-          <Typography variant="h5" fontWeight={700} gutterBottom>
+          <Typography variant="h5" fontWeight={700} gutterBottom sx={{ fontSize: { xs: 22, sm: 28 } }}>
             KPJ Tshirts
           </Typography>
-          <Typography variant="body2" color="text.secondary" gutterBottom>
+          <Typography variant="body2" color="text.secondary" gutterBottom sx={{ fontSize: { xs: 14, sm: 16 } }}>
             A to Z T shirt needs | {contact.location}
           </Typography>
           <Stack
-            direction="row"
+            direction={{ xs: "column", sm: "row" }}
             spacing={1}
             alignItems="center"
             justifyContent="center"
             sx={{ my: 2 }}
           >
             <PhoneIcon color="primary" />
-            <Typography variant="body2" fontWeight={500}>
+            <Typography variant="body2" fontWeight={500} sx={{ fontSize: { xs: 14, sm: 16 } }}>
               <a
                 href={`tel:${contact.phone}`}
                 style={{ textDecoration: "none", color: "inherit" }}
@@ -163,7 +169,7 @@ const Contact = () => {
             <QRCode
               value={`MECARD:N:${contact.name};TEL:${contact.phone};EMAIL:${contact.email};NOTE:${contact.instagram};;`}
               size={120}
-              style={{ background: "white", padding: 8, borderRadius: 8 }}
+              style={{ background: "white", padding: 8, borderRadius: 8, width: "100%", maxWidth: 140 }}
             />
           </Box>
           <Button
@@ -177,6 +183,8 @@ const Contact = () => {
               borderRadius: 3,
               boxShadow: 2,
               background: "linear-gradient(90deg, #ff512f 0%, #dd2476 100%)",
+              fontSize: { xs: 14, sm: 16 },
+              py: { xs: 1, sm: 2 },
             }}
           >
             Download vCard

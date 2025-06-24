@@ -99,7 +99,7 @@ const Home = () => {
             fontFamily: "Segoe UI, Arial, sans-serif",
             background: "#fafbfc",
             minHeight: "100vh",
-            minWidth: "1230px",
+            minWidth: "100vw",
           }}
         >
           <section
@@ -113,7 +113,7 @@ const Home = () => {
           >
             <h1
               style={{
-                fontSize: 42,
+                fontSize: "clamp(2rem, 6vw, 42px)",
                 margin: 0,
                 color: "#22223b",
                 fontWeight: 700,
@@ -124,7 +124,7 @@ const Home = () => {
             </h1>
             <p
               style={{
-                fontSize: 20,
+                fontSize: "clamp(1rem, 4vw, 20px)",
                 color: "#4a4e69",
                 margin: "1rem auto",
                 maxWidth: 600,
@@ -155,11 +155,16 @@ const Home = () => {
 
           <section
             id="designs"
-            style={{ padding: "3rem 0", maxWidth: 1100, margin: "0 auto" }}
+            style={{
+              padding: "3rem 0",
+              maxWidth: 1100,
+              margin: "0 auto",
+              width: "100%",
+            }}
           >
             <h2
               style={{
-                fontSize: 32,
+                fontSize: "clamp(1.5rem, 5vw, 32px)",
                 color: "#22223b",
                 marginBottom: 24,
                 textAlign: "center",
@@ -183,12 +188,13 @@ const Home = () => {
                     border: "1px solid #e5e7eb",
                     borderRadius: 12,
                     padding: 24,
-                    width: 260,
+                    width: "min(90vw, 260px)",
                     boxShadow: "0 2px 12px #22223b0a",
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
                     transition: "box-shadow 0.2s",
+                    marginBottom: "2rem",
                   }}
                 >
                   <img
@@ -196,7 +202,7 @@ const Home = () => {
                     alt={design.name}
                     style={{
                       width: "100%",
-                      height: 180,
+                      height: "clamp(120px, 30vw, 180px)",
                       objectFit: "cover",
                       borderRadius: 8,
                       marginBottom: 16,
@@ -208,11 +214,18 @@ const Home = () => {
                       margin: "0 0 8px 0",
                       color: "#22223b",
                       fontWeight: 600,
+                      fontSize: "clamp(1rem, 3vw, 20px)",
                     }}
                   >
                     {design.name}
                   </h4>
-                  <p style={{ fontSize: 15, color: "#4a4e69", margin: 0 }}>
+                  <p
+                    style={{
+                      fontSize: "clamp(0.9rem, 2.5vw, 15px)",
+                      color: "#4a4e69",
+                      margin: 0,
+                    }}
+                  >
                     {design.description}
                   </p>
                   <button
@@ -227,6 +240,8 @@ const Home = () => {
                       cursor: "pointer",
                       fontSize: 15,
                       transition: "background 0.2s",
+                      width: "100%",
+                      maxWidth: 180,
                     }}
                   >
                     View Details
@@ -244,7 +259,14 @@ const Home = () => {
               textAlign: "center",
             }}
           >
-            <h3 style={{ fontSize: 26, marginBottom: 12 }}>Why Choose KPJ?</h3>
+            <h3
+              style={{
+                fontSize: "clamp(1.2rem, 4vw, 26px)",
+                marginBottom: 12,
+              }}
+            >
+              Why Choose KPJ?
+            </h3>
             <ul
               style={{
                 listStyle: "none",
@@ -255,7 +277,8 @@ const Home = () => {
                 flexWrap: "wrap",
                 justifyContent: "center",
                 gap: "2rem",
-                fontSize: 17,
+                fontSize: "clamp(1rem, 2.5vw, 17px)",
+                flexDirection: "row",
               }}
             >
               <li>✔️ Premium, soft cotton fabrics</li>
@@ -271,7 +294,7 @@ const Home = () => {
               color: "#4a4e69",
               textAlign: "center",
               padding: "1.5rem 0 1rem 0",
-              fontSize: 15,
+              fontSize: "clamp(0.9rem, 2vw, 15px)",
               borderTop: "1px solid #e5e7eb",
             }}
           >

@@ -34,10 +34,33 @@ const About = () => {
           "linear-gradient(321deg, rgb(234 245 255) 0%, rgb(51 147 224) 100%)",
         borderRadius: 18,
         boxShadow: "0 4px 32px rgba(0,0,0,0.07)",
+        width: "95vw",
       }}
     >
       <style>
         {`
+          @media (max-width: 600px) {
+            .about-title {
+              font-size: 1.7rem !important;
+            }
+            .about-list {
+              font-size: 1rem !important;
+              padding-left: 0.7rem !important;
+            }
+            .about-contact {
+              font-size: 1rem !important;
+            }
+            .fade-in {
+              font-size: 1rem !important;
+            }
+            img[alt="KPJ Logo"] {
+              height: 48px !important;
+              margin-bottom: 12px !important;
+            }
+            div[style*="padding: 2rem"] {
+              padding: 1rem !important;
+            }
+          }
           .fade-in {
             opacity: 0;
             transform: translateY(40px);
