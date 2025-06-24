@@ -1,29 +1,33 @@
 import React from "react";
 import Header from "../components/Header";
 import BusinessCard from "../components/BusinessCard";
+import ClassicCotton from "../assets/landingImages/ClassicCotton.png";
+import PremiumCotton from "../assets/landingImages/PremiumCotton.png";
+import PolyCottonBlend from "../assets/landingImages/PolyCottonBlend.jpeg";
+import PolyCottonEveryDay from "../assets/landingImages/PolyCottonEveryday.jpeg";
 
 const tshirtDesigns = [
   {
     name: "Cotton Classic Tee",
-    image: "/images/cotton-classic.jpg",
+    image: ClassicCotton,
     description: "100% pure cotton for ultimate comfort and breathability.",
     category: "Cotton",
   },
   {
     name: "Cotton Premium Tee",
-    image: "/images/cotton-premium.jpg",
+    image: PremiumCotton,
     description: "Soft, durable cotton with a premium finish.",
     category: "Cotton",
   },
   {
     name: "Poly Cotton Blend Tee",
-    image: "/images/poly-cotton-blend.jpg",
+    image: PolyCottonBlend,
     description: "A perfect blend of polyester and cotton for softness and durability.",
     category: "Poly Cotton",
   },
   {
     name: "Poly Cotton Everyday Tee",
-    image: "/images/poly-cotton-everyday.jpg",
+    image: PolyCottonEveryDay,
     description: "Wrinkle-resistant and lightweight poly cotton for daily wear.",
     category: "Poly Cotton",
   },
