@@ -59,11 +59,11 @@ const Contact = () => {
         width: "100vw",
         position: "relative",
         overflow: "hidden",
-        bgcolor: "background.default",
         py: { xs: 1, sm: 4 },
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
+        background: "linear-gradient(135deg,rgb(253, 253, 253) 0%,rgb(149, 207, 255) 100%)",
       }}
     >
       {/* Background T-shirt icons */}
@@ -93,24 +93,55 @@ const Contact = () => {
         }}
       >
         <Paper
-          elevation={8}
+          elevation={0}
           sx={{
             maxWidth: 400,
             width: "100%",
             mx: "auto",
             p: { xs: 2, sm: 4 },
-            borderRadius: 5,
-            backdropFilter: "blur(16px) saturate(180%)",
-            background: "rgba(255,255,255,0.18)",
-            border: "1px solid rgba(255,255,255,0.25)",
-            boxShadow: 8,
-            textAlign: "center",
+            borderRadius: 6,
             position: "relative",
             zIndex: 2,
             overflow: "hidden",
+            // Toughened glass effect
+            background:
+              "linear-gradient(135deg, rgba(255,255,255,0.22) 60%, rgba(200,220,255,0.13) 100%)",
+            border: "2.5px solid rgba(255,255,255,0.45)",
+            boxShadow:
+              "0 8px 32px 0 rgba(31, 38, 135, 0.18), 0 1.5px 8px 0 rgba(0,0,0,0.08)",
+            backdropFilter: "blur(18px) saturate(180%)",
+            WebkitBackdropFilter: "blur(18px) saturate(180%)",
+            "&:before": {
+              content: '""',
+              position: "absolute",
+              inset: 0,
+              borderRadius: 6,
+              pointerEvents: "none",
+              background:
+                "radial-gradient(circle at 70% 20%, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.10) 60%, transparent 100%)",
+              zIndex: 1,
+            },
+            "&:after": {
+              content: '""',
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              borderRadius: 6,
+              pointerEvents: "none",
+              boxShadow:
+                "inset 0 1.5px 8px 0 rgba(255,255,255,0.18), inset 0 -2px 12px 0 rgba(0,0,0,0.07)",
+              zIndex: 2,
+            },
           }}
         >
-          <Box display="flex" justifyContent="center" mb={2}>
+          <Box
+            display="flex"
+            justifyContent="center"
+            mb={2}
+            sx={{ position: "relative", zIndex: 3 }}
+          >
             <img
               src={kpjLogo}
               alt="KPJ Logo"
@@ -119,8 +150,10 @@ const Contact = () => {
                 borderRadius: 12,
                 padding: 8,
                 maxWidth: "100%",
-                background: "rgba(255,255,255,0.7)",
+                background: "rgba(101, 206, 255, 0.7)",
                 boxShadow: "0 2px 12px #3393e033",
+                border: "1.5px solid rgba(255,255,255,0.35)",
+                backdropFilter: "blur(2px)",
               }}
             />
           </Box>
@@ -134,7 +167,7 @@ const Contact = () => {
               letterSpacing: 1,
               textShadow: "0 1px 8px #fff8",
               position: "relative",
-              zIndex: 2,
+              zIndex: 3,
             }}
           >
             KPJ Tshirts
@@ -148,7 +181,7 @@ const Contact = () => {
               color: "#4a4e69",
               mb: 1,
               position: "relative",
-              zIndex: 2,
+              zIndex: 3,
             }}
           >
             A to Z T shirt needs | {contact.location}
@@ -158,7 +191,7 @@ const Contact = () => {
             spacing={1}
             alignItems="center"
             justifyContent="center"
-            sx={{ my: 2, position: "relative", zIndex: 2 }}
+            sx={{ my: 2, position: "relative", zIndex: 3 }}
           >
             <PhoneIcon color="primary" />
             <Typography
@@ -193,7 +226,7 @@ const Contact = () => {
             direction="row"
             spacing={2}
             justifyContent="center"
-            sx={{ mb: 2, position: "relative", zIndex: 2 }}
+            sx={{ mb: 2, position: "relative", zIndex: 3 }}
           >
             <IconButton
               color="success"
@@ -242,7 +275,7 @@ const Contact = () => {
               display: "flex",
               justifyContent: "center",
               position: "relative",
-              zIndex: 2,
+              zIndex: 3,
             }}
           >
             <QRCode
@@ -278,7 +311,7 @@ const Contact = () => {
                 background: "linear-gradient(90deg, #dd2476 0%, #ff512f 100%)",
               },
               position: "relative",
-              zIndex: 2,
+              zIndex: 3,
             }}
           >
             Download vCard

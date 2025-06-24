@@ -36,7 +36,14 @@ function App() {
         }}
       >
         <Header mode={mode} onModeChange={setMode} />
-        <Box sx={{ flex: 1, display: "flex", flexDirection: "column", marginTop: "3rem" }}>
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            marginTop: "3rem",
+          }}
+        >
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
