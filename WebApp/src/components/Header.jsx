@@ -45,12 +45,12 @@ const Header = ({ mode, onModeChange }) => {
         <Button color="inherit" component={Link} to="/kpj-tshirts/contact">
           Contact
         </Button>
-        <IconButton
+        {/* <IconButton
           color="inherit"
           onClick={() => onModeChange(mode === "light" ? "dark" : "light")}
         >
           {mode === "light" ? <Brightness4 /> : <Brightness7 />}
-        </IconButton>
+        </IconButton> */}
       </Toolbar>
     </AppBar>
   );
