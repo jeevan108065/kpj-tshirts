@@ -8,6 +8,7 @@ const AppRoutes = () => (
     <Route path="/kpj-tshirts/" element={<Home />} />
     <Route path="/kpj-tshirts/about" element={<About />} />
     <Route path="/kpj-tshirts/contact" element={<Contact />} />
+    <Route path="*" element={<Home />} />
   </Routes>
 );
 
