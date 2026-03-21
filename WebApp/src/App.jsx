@@ -10,12 +10,12 @@ import AdminApp from "./admin/AdminApp";
 
 function App() {
   const location = useLocation();
-  const isAdmin = location.pathname.startsWith("/kpj-garments/admin");
+  const isAdmin = location.pathname.startsWith("/admin");
 
   if (isAdmin) {
     return (
       <Routes>
-        <Route path="/kpj-garments/admin/*" element={<AdminApp />} />
+        <Route path="/admin/*" element={<AdminApp />} />
       </Routes>
     );
   }

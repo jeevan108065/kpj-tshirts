@@ -37,7 +37,7 @@ const AdminApp = () => {
           <Route path="categories" element={<Categories />} />
           <Route path="payments" element={<PaymentMethods />} />
         </Route>
-        <Route path="*" element={<Navigate to="/kpj-garments/admin" replace />} />
+        <Route path="*" element={<Navigate to="/admin" replace />} />
       </Routes>
     </ThemeProvider>
   );

@@ -26,7 +26,7 @@ const Products = () => {
     return (
       <Container maxWidth="md" sx={{ py: 10, textAlign: "center" }}>
         <Typography variant="h4" sx={{ mb: 2 }}>Category not found</Typography>
-        <Button component={Link} to="/kpj-garments/" variant="contained">Go Home</Button>
+        <Button component={Link} to="/" variant="contained">Go Home</Button>
       </Container>
     );
   }
@@ -42,7 +42,7 @@ const Products = () => {
         <Container maxWidth="lg">
           <motion.div initial="hidden" animate="visible" variants={fadeUp}>
             <Breadcrumbs sx={{ mb: 1.5, "& .MuiBreadcrumbs-separator": { color: "rgba(255,255,255,0.5)" } }}>
-              <Typography component={Link} to="/kpj-garments/" sx={{ color: "rgba(255,255,255,0.7)", textDecoration: "none", fontSize: { xs: 13, md: 16 }, "&:hover": { color: "#F5A623" } }}>
+              <Typography component={Link} to="/" sx={{ color: "rgba(255,255,255,0.7)", textDecoration: "none", fontSize: { xs: 13, md: 16 }, "&:hover": { color: "#F5A623" } }}>
                 Home
               </Typography>
               <Typography sx={{ color: "#F5A623", fontSize: { xs: 13, md: 16 } }}>{category.name}</Typography>
@@ -113,7 +113,7 @@ const Products = () => {
           <Typography variant="body1" sx={{ color: "rgba(255,255,255,0.7)", mb: 3, fontSize: { xs: 13, md: 16 } }}>
             We offer custom designs, bulk orders, and express delivery. Let's create something amazing together.
           </Typography>
-          <Button component={Link} to={`/kpj-garments/quote?product=${encodeURIComponent(category.name)}`} variant="contained" size="large" endIcon={<ArrowForwardIcon />}
+          <Button component={Link} to={`/quote?product=${encodeURIComponent(category.name)}`} variant="contained" size="large" endIcon={<ArrowForwardIcon />}
             sx={{ background: "linear-gradient(135deg, #F5A623, #e8941a)", color: "#1E3A5F", fontWeight: 700, px: { xs: 3, md: 4 } }}>
             Get a Free Quote
           </Button>

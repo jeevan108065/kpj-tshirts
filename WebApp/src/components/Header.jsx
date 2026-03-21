@@ -11,17 +11,17 @@ import { Link, useLocation } from "react-router-dom";
 import kpjLogo from "../assets/kpjLogo.svg";
 
 const productLinks = [
-  { label: "T-Shirts", to: "/kpj-garments/products/tshirts" },
-  { label: "Promotional T-Shirts", to: "/kpj-garments/products/promotional" },
-  { label: "Sublimation T-Shirts", to: "/kpj-garments/products/sublimation" },
-  { label: "Uniforms", to: "/kpj-garments/products/uniforms" },
-  { label: "Tracks & Tracksuits", to: "/kpj-garments/products/tracks" },
+  { label: "T-Shirts", to: "/products/tshirts" },
+  { label: "Promotional T-Shirts", to: "/products/promotional" },
+  { label: "Sublimation T-Shirts", to: "/products/sublimation" },
+  { label: "Uniforms", to: "/products/uniforms" },
+  { label: "Tracks & Tracksuits", to: "/products/tracks" },
 ];
 
 const navLinks = [
-  { label: "Home", to: "/kpj-garments/" },
-  { label: "About", to: "/kpj-garments/about" },
-  { label: "Contact", to: "/kpj-garments/contact" },
+  { label: "Home", to: "/" },
+  { label: "About", to: "/about" },
+  { label: "Contact", to: "/contact" },
 ];
 
 const Header = () => {
@@ -49,13 +49,13 @@ const Header = () => {
         <Container maxWidth="xl">
           <Toolbar sx={{ px: { xs: 0 }, minHeight: { xs: 56, md: 72 } }} disableGutters>
             {/* Logo */}
-            <Box component={Link} to="/kpj-garments/" sx={{ display: "flex", alignItems: "center", textDecoration: "none", mr: { xs: 1, md: 4 } }}>
+            <Box component={Link} to="/" sx={{ display: "flex", alignItems: "center", textDecoration: "none", mr: { xs: 1, md: 4 } }}>
               <img src={kpjLogo} alt="KPJ Logo" style={{ height: 32 }} />
             </Box>
 
             {/* Desktop Nav */}
             <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", gap: 0.5, flexGrow: 1 }}>
-              <Button component={Link} to="/kpj-garments/" sx={{ color: isActive("/kpj-garments/") ? "#F5A623" : "#fff", fontWeight: 600, "&:hover": { color: "#F5A623" } }}>
+              <Button component={Link} to="/" sx={{ color: isActive("/") ? "#F5A623" : "#fff", fontWeight: 600, "&:hover": { color: "#F5A623" } }}>
                 Home
               </Button>
               <Button
@@ -94,10 +94,10 @@ const Header = () => {
                   </MenuItem>
                 ))}
               </Menu>
-              <Button component={Link} to="/kpj-garments/about" sx={{ color: isActive("/kpj-garments/about") ? "#F5A623" : "#fff", fontWeight: 600, "&:hover": { color: "#F5A623" } }}>
+              <Button component={Link} to="/about" sx={{ color: isActive("/about") ? "#F5A623" : "#fff", fontWeight: 600, "&:hover": { color: "#F5A623" } }}>
                 About
               </Button>
-              <Button component={Link} to="/kpj-garments/contact" sx={{ color: isActive("/kpj-garments/contact") ? "#F5A623" : "#fff", fontWeight: 600, "&:hover": { color: "#F5A623" } }}>
+              <Button component={Link} to="/contact" sx={{ color: isActive("/contact") ? "#F5A623" : "#fff", fontWeight: 600, "&:hover": { color: "#F5A623" } }}>
                 Contact
               </Button>
             </Box>
@@ -105,7 +105,7 @@ const Header = () => {
             {/* CTA */}
             <Button
               component={Link}
-              to="/kpj-garments/quote"
+              to="/quote"
               variant="contained"
               size="small"
               sx={{ display: { xs: "none", md: "flex" }, background: "linear-gradient(135deg, #F5A623, #e8941a)", color: "#1E3A5F", fontWeight: 700, "&:hover": { background: "#e8941a" } }}
@@ -150,8 +150,8 @@ const Header = () => {
         </Box>
         <List sx={{ flex: 1, py: 1 }}>
           <ListItem
-            component={Link} to="/kpj-garments/" onClick={closeMobile}
-            sx={{ color: isActive("/kpj-garments/") ? "#F5A623" : "#fff", py: 1.5 }}
+            component={Link} to="/" onClick={closeMobile}
+            sx={{ color: isActive("/") ? "#F5A623" : "#fff", py: 1.5 }}
           >
             <ListItemText primary="Home" slotProps={{ primary: { fontSize: 16, fontWeight: 500 } }} />
           </ListItem>
@@ -187,7 +187,7 @@ const Header = () => {
         </List>
         <Box sx={{ p: 2, borderTop: "1px solid rgba(255,255,255,0.1)" }}>
           <Button
-            component={Link} to="/kpj-garments/quote" variant="contained" fullWidth onClick={closeMobile}
+            component={Link} to="/quote" variant="contained" fullWidth onClick={closeMobile}
             sx={{ background: "linear-gradient(135deg, #F5A623, #e8941a)", color: "#1E3A5F", fontWeight: 700, py: 1.5 }}
           >
             Get Quote

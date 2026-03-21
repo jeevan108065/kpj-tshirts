@@ -58,14 +58,14 @@ const Home = () => {
                 From custom t-shirts to corporate uniforms, sublimation prints to tracksuits — KPJ delivers premium apparel that makes an impact.
               </Typography>
               <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-                <Button component={Link} to="/kpj-garments/products/tshirts" variant="contained" size="large" endIcon={<ArrowForwardIcon />}
+                <Button component={Link} to="/products/tshirts" variant="contained" size="large" endIcon={<ArrowForwardIcon />}
                   sx={{
                     background: "linear-gradient(135deg, #F5A623, #e8941a)", color: "#1E3A5F", fontWeight: 700,
                     px: { xs: 3, md: 4 }, py: 1.5, fontSize: { xs: 14, md: 16 },
                   }}>
                   Explore Products
                 </Button>
-                <Button component={Link} to="/kpj-garments/quote" variant="outlined" size="large"
+                <Button component={Link} to="/quote" variant="outlined" size="large"
                   sx={{
                     borderColor: "rgba(255,255,255,0.3)", color: "#fff",
                     px: { xs: 3, md: 4 }, py: 1.5, fontSize: { xs: 14, md: 16 },
@@ -120,7 +120,7 @@ const Home = () => {
           {categories.map((cat, i) => (
             <Grid key={cat.id} size={{ xs: 6, sm: 6, md: i < 2 ? 6 : 4 }}>
               <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={fadeUp}>
-                <Card component={Link} to={`/kpj-garments/products/${cat.id}`}
+                <Card component={Link} to={`/products/${cat.id}`}
                   sx={{
                     textDecoration: "none", position: "relative", overflow: "hidden", borderRadius: { xs: 2, md: 3 },
                     height: { xs: 160, sm: 200, md: i < 2 ? 320 : 260 },
@@ -224,7 +224,7 @@ const Home = () => {
           Get in touch today for a free quote. No minimums, fast delivery, premium quality guaranteed.
         </Typography>
         <Stack direction={{ xs: "column", sm: "row" }} spacing={2} justifyContent="center" sx={{ px: { xs: 2, sm: 0 } }}>
-          <Button component={Link} to="/kpj-garments/contact" variant="contained" size="large"
+          <Button component={Link} to="/contact" variant="contained" size="large"
             sx={{ background: "#F5A623", color: "#1E3A5F", fontWeight: 700, px: { xs: 3, md: 5 }, "&:hover": { background: "#e8941a" } }}>
             Contact Us
           </Button>
