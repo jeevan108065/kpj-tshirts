@@ -14,6 +14,6 @@ function copyIndexTo404() {
   };
 }
 export default defineConfig({
-  base: '/kpj-tshirts',
+  base: '/kpj-garments/',
   plugins: [react(), copyIndexTo404()],
 });

@@ -3,7 +3,7 @@ import KPJLandingAnimation from "../assets/KPJLandingAnimation.gif";
 
 const LandingAnimation = ({ onFinish }) => {
   React.useEffect(() => {
-    const timer = setTimeout(onFinish, 7700); // Show animation for 2.5 seconds
+    const timer = setTimeout(onFinish, 7700);
     return () => clearTimeout(timer);
   }, [onFinish]);
 
@@ -20,16 +20,20 @@ const LandingAnimation = ({ onFinish }) => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
+        padding: 16,
       }}
     >
       <img
         src={KPJLandingAnimation}
         alt="Landing Animation"
         style={{
-          maxWidth: "60vw",
-          maxHeight: "60vh",
-          borderRadius: 24,
+          maxWidth: "90vw",
+          maxHeight: "70vh",
+          width: "auto",
+          height: "auto",
+          borderRadius: 16,
           boxShadow: "0 4px 32px #22223b33",
+          objectFit: "contain",
         }}
       />
     </div>

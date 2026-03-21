@@ -1,326 +1,242 @@
-import React from "react";
-import Header from "../components/Header";
-import BusinessCard from "../components/BusinessCard";
-import ClassicCotton from "../assets/landingImages/ClassicCotton.png";
-import PremiumCotton from "../assets/landingImages/PremiumCotton.png";
-import PolyCottonBlend from "../assets/landingImages/PolyCottonBlend.jpeg";
-import PolyCottonEveryDay from "../assets/landingImages/PolyCottonEveryday.jpeg";
-import LandingAnimation from "../components/LandingAnimation";
-import SportsPerformance from "../assets/landingImages/SportsPerformance.jpeg";
-import AthleticMesh from "../assets/landingImages/AthleticMesh.jpeg";
-import EthnicPrint from "../assets/landingImages/EthnicPrint.jpeg";
-import FestiveEthnic from "../assets/landingImages/FestiveEthnic.jpeg";
-import EventSpecial from "../assets/landingImages/EventSpecial.jpeg";
-import Occasion from "../assets/landingImages/Occasion.png";
-import UniformCrew from "../assets/landingImages/UniformCrew.jpeg";
-import CorporateUniform from "../assets/landingImages/CorporateUniform.png";
+import React, { useEffect, useState } from "react";
+import { Box, Container, Typography, Button, Grid, Card, CardMedia, Chip, Stack, Avatar } from "@mui/material";
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import LocalShippingIcon from "@mui/icons-material/LocalShipping";
+import BrushIcon from "@mui/icons-material/Brush";
+import GroupsIcon from "@mui/icons-material/Groups";
+import StarIcon from "@mui/icons-material/Star";
+import { categories, testimonials } from "../data/products";
+import { getMetrics, fetchMetrics } from "../db/metricsService";
 
-const tshirtDesigns = [
-  {
-    name: "Cotton Classic",
-    image: ClassicCotton,
-    description: "100% pure cotton for ultimate comfort and breathability.",
-    category: "Cotton",
-  },
-  {
-    name: "Cotton Premium",
-    image: PremiumCotton,
-    description: "Soft, durable cotton with a premium finish.",
-    category: "Cotton",
-  },
-  {
-    name: "Poly Cotton Blend",
-    image: PolyCottonBlend,
-    description:
-      "A perfect blend of polyester and cotton for softness and durability.",
-    category: "Poly Cotton",
-  },
-  {
-    name: "Poly Cotton Everyday",
-    image: PolyCottonEveryDay,
-    description:
-      "Wrinkle-resistant and lightweight poly cotton for daily wear.",
-    category: "Poly Cotton",
-  },
-  {
-    name: "Sports Performance",
-    image: SportsPerformance,
-    description: "Moisture-wicking fabric ideal for workouts and sports.",
-    category: "Sports",
-  },
-  {
-    name: "Athletic Mesh",
-    image: AthleticMesh,
-    description:
-      "Breathable mesh design for maximum airflow during activities.",
-    category: "Sports",
-  },
-  {
-    name: "Ethnic Print",
-    image: EthnicPrint,
-    description: "Traditional patterns with a modern twist.",
-    category: "Ethnic",
-  },
-  {
-    name: "Festive Ethnic",
-    image: FestiveEthnic,
-    description: "Celebrate culture with vibrant ethnic designs.",
-    category: "Ethnic",
-  },
-  {
-    name: "Event Special",
-    image: EventSpecial,
-    description: "Custom tshirts for events, parties, and celebrations.",
-    category: "Event Based",
-  },
-  {
-    name: "Occasion",
-    image: Occasion,
-    description: "Designed for special occasions and gatherings.",
-    category: "Event Based",
-  },
-  {
-    name: "Uniform Crew",
-    image: UniformCrew,
-    description: "Perfect for teams, staff, and organizations.",
-    category: "Uniform",
-  },
-  {
-    name: "Corporate Uniform",
-    image: CorporateUniform,
-    description: "Professional look for corporate and institutional use.",
-    category: "Uniform",
-  },
-];
+const fadeUp = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 
 const Home = () => {
-  const [showAnimation, setShowAnimation] = React.useState(true);
+  const [metrics, setMetrics] = useState(getMetrics());
+  useEffect(() => { fetchMetrics().then(setMetrics).catch(() => {}); }, []);
+
+  const stats = [
+    { value: metrics.tshirtsDelivered > 0 ? `${metrics.tshirtsDelivered.toLocaleString("en-IN")}+` : "50K+", label: "T-Shirts Delivered" },
+    { value: metrics.happyClients > 0 ? `${metrics.happyClients}+` : "500+", label: "Happy Clients" },
+    { value: metrics.expressDelivery || "48hr", label: "Express Delivery" },
+    { value: metrics.satisfactionRate || "100%", label: "Satisfaction Rate" },
+  ];
 
   return (
-    <>
-      {showAnimation && (
-        <LandingAnimation onFinish={() => setShowAnimation(false)} />
-      )}
-      {!showAnimation && (
-        <div
-          style={{
-            fontFamily: "Segoe UI, Arial, sans-serif",
-            background: "#fafbfc",
-            minHeight: "100vh",
-            minWidth: "100vw",
-          }}
-        >
-          <section
-            style={{
-              background:
-                "linear-gradient(90deg, rgb(247 247 247) 60%, rgb(136, 187, 247) 100%)",
-              padding: "3rem 0 2rem 0",
-              textAlign: "center",
-              borderBottom: "1px solid #e5e7eb",
-            }}
-          >
-            <h1
-              style={{
-                fontSize: "clamp(2rem, 6vw, 42px)",
-                margin: 0,
-                color: "#22223b",
-                fontWeight: 700,
-                letterSpacing: 1,
-              }}
-            >
-              KPJ T-Shirts
-            </h1>
-            <p
-              style={{
-                fontSize: "clamp(1rem, 4vw, 20px)",
-                color: "#4a4e69",
-                margin: "1rem auto",
-                maxWidth: 600,
-              }}
-            >
-              Elevate your everyday style with premium, comfortable, and unique
-              T-shirts. Designed for everyone, made to last.
-            </p>
-            <a
-              href="#designs"
-              style={{
-                display: "inline-block",
-                marginTop: 24,
-                padding: "12px 32px",
-                background: "#22223b",
+  <Box sx={{ width: "100%" }}>
+    {/* Hero */}
+    <Box sx={{
+      minHeight: { xs: "70vh", sm: "75vh", md: "90vh" },
+      display: "flex", alignItems: "center", position: "relative", overflow: "hidden",
+      background: "linear-gradient(135deg, #1E3A5F 0%, #122a4a 50%, #1a3a5c 100%)",
+      py: { xs: 4, md: 0 },
+    }}>
+      <Box sx={{ position: "absolute", inset: 0, opacity: 0.08,
+        backgroundImage: `url(https://images.unsplash.com/photo-1562157873-818bc0726f68?w=1600&q=80)`,
+        backgroundSize: "cover", backgroundPosition: "center",
+      }} />
+      <Container maxWidth="lg" sx={{ position: "relative", zIndex: 1 }}>
+        <Grid container spacing={{ xs: 3, md: 4 }} alignItems="center">
+          <Grid size={{ xs: 12, md: 7 }}>
+            <motion.div initial="hidden" animate="visible" variants={fadeUp}>
+              <Chip label="Premium Custom Apparel" sx={{ mb: { xs: 2, md: 3 }, bgcolor: "rgba(245,166,35,0.15)", color: "#F5A623", fontWeight: 600, fontSize: { xs: 12, md: 14 } }} />
+              <Typography variant="h1" sx={{
                 color: "#fff",
-                borderRadius: 24,
-                fontWeight: 600,
-                textDecoration: "none",
-                fontSize: 18,
-                boxShadow: "0 2px 8px #22223b22",
-                transition: "background 0.2s",
-              }}
-            >
-              Shop Our Designs
-            </a>
-          </section>
+                fontSize: { xs: "1.8rem", sm: "2.2rem", md: "3.2rem", lg: "3.8rem" },
+                lineHeight: 1.15, mb: { xs: 2, md: 3 },
+              }}>
+                Wear Your Brand.<br />
+                <Box component="span" sx={{ color: "#3393E0" }}>Stand Out.</Box>
+              </Typography>
+              <Typography variant="h6" sx={{
+                color: "rgba(255,255,255,0.7)", fontWeight: 400,
+                mb: { xs: 3, md: 4 }, maxWidth: 520, lineHeight: 1.6,
+                fontSize: { xs: "0.9rem", sm: "1rem", md: "1.15rem" },
+              }}>
+                From custom t-shirts to corporate uniforms, sublimation prints to tracksuits — KPJ delivers premium apparel that makes an impact.
+              </Typography>
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+                <Button component={Link} to="/kpj-garments/products/tshirts" variant="contained" size="large" endIcon={<ArrowForwardIcon />}
+                  sx={{
+                    background: "linear-gradient(135deg, #F5A623, #e8941a)", color: "#1E3A5F", fontWeight: 700,
+                    px: { xs: 3, md: 4 }, py: 1.5, fontSize: { xs: 14, md: 16 },
+                  }}>
+                  Explore Products
+                </Button>
+                <Button component={Link} to="/kpj-garments/quote" variant="outlined" size="large"
+                  sx={{
+                    borderColor: "rgba(255,255,255,0.3)", color: "#fff",
+                    px: { xs: 3, md: 4 }, py: 1.5, fontSize: { xs: 14, md: 16 },
+                    "&:hover": { borderColor: "#3393E0", bgcolor: "rgba(51,147,224,0.1)" },
+                  }}>
+                  Get a Quote
+                </Button>
+              </Stack>
+            </motion.div>
+          </Grid>
+          <Grid size={{ xs: 12, md: 5 }} sx={{ display: { xs: "none", md: "block" } }}>
+            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, delay: 0.3 }}>
+              <Box sx={{ borderRadius: 4, overflow: "hidden", boxShadow: "0 20px 60px rgba(0,0,0,0.4)" }}>
+                <img src="https://images.unsplash.com/photo-1562157873-818bc0726f68?w=800&q=80" alt="KPJ Custom Apparel" style={{ width: "100%", display: "block" }} />
+              </Box>
+            </motion.div>
+          </Grid>
+        </Grid>
+      </Container>
+    </Box>
 
-          <section
-            id="designs"
-            style={{
-              padding: "3rem 0",
-              maxWidth: 1100,
-              margin: "0 auto",
-              width: "100%",
-            }}
-          >
-            <h2
-              style={{
-                fontSize: "clamp(1.5rem, 5vw, 32px)",
-                color: "#22223b",
-                marginBottom: 24,
-                textAlign: "center",
-              }}
-            >
-              Featured Designs
-            </h2>
-            <div
-              style={{
-                display: "flex",
-                gap: "2.5rem",
-                flexWrap: "wrap",
-                justifyContent: "center",
-              }}
-            >
-              {tshirtDesigns.map((design) => (
-                <div
-                  key={design.name}
-                  style={{
-                    background: "#fff",
-                    border: "1px solid #e5e7eb",
-                    borderRadius: 12,
-                    padding: 24,
-                    width: "min(90vw, 260px)",
-                    boxShadow: "0 2px 12px #22223b0a",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    transition: "box-shadow 0.2s",
-                    marginBottom: "2rem",
-                  }}
-                >
-                  <img
-                    src={design.image}
-                    alt={design.name}
-                    style={{
-                      width: "100%",
-                      height: "clamp(120px, 30vw, 180px)",
-                      objectFit: "cover",
-                      borderRadius: 8,
-                      marginBottom: 16,
-                      boxShadow: "0 1px 6px #22223b11",
-                    }}
-                  />
-                  <h4
-                    style={{
-                      margin: "0 0 8px 0",
-                      color: "#22223b",
-                      fontWeight: 600,
-                      fontSize: "clamp(1rem, 3vw, 20px)",
-                    }}
-                  >
-                    {design.name}
-                  </h4>
-                  <p
-                    style={{
-                      fontSize: "clamp(0.9rem, 2.5vw, 15px)",
-                      color: "#4a4e69",
-                      margin: 0,
-                    }}
-                  >
-                    {design.description}
-                  </p>
-                  <button
-                    style={{
-                      marginTop: 18,
-                      padding: "8px 20px",
-                      background: "#4a4e69",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: 20,
-                      fontWeight: 500,
-                      cursor: "pointer",
-                      fontSize: 15,
-                      transition: "background 0.2s",
-                      width: "100%",
-                      maxWidth: 180,
-                    }}
-                  >
-                    View Details
-                  </button>
-                </div>
+    {/* Stats Bar */}
+    <Box sx={{ background: "#3393E0", py: { xs: 3, md: 4 } }}>
+      <Container maxWidth="lg">
+        <Grid container spacing={{ xs: 2, md: 3 }} justifyContent="center">
+          {stats.map((s) => (
+            <Grid key={s.label} size={{ xs: 6, sm: 3 }} sx={{ textAlign: "center" }}>
+              <Typography variant="h3" sx={{ color: "#fff", fontWeight: 800, fontSize: { xs: "1.5rem", sm: "1.8rem", md: "2.4rem" } }}>
+                {s.value}
+              </Typography>
+              <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.8)", fontWeight: 500, fontSize: { xs: 11, sm: 13, md: 14 } }}>
+                {s.label}
+              </Typography>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
+    </Box>
+
+    {/* Product Categories */}
+    <Box sx={{ py: { xs: 5, md: 10 }, bgcolor: "#F8FBFF" }}>
+      <Container maxWidth="lg">
+        <Box sx={{ textAlign: "center", mb: { xs: 3, md: 6 } }}>
+          <Typography variant="h2" sx={{ fontSize: { xs: "1.5rem", sm: "1.8rem", md: "2.5rem" }, color: "#1E3A5F", mb: 1.5 }}>
+            Our Product Range
+          </Typography>
+          <Typography variant="body1" sx={{ color: "#4A5568", maxWidth: 600, mx: "auto", fontSize: { xs: 14, md: 16 } }}>
+            Everything you need under one roof — from casual tees to professional uniforms
+          </Typography>
+        </Box>
+        <Grid container spacing={{ xs: 2, md: 3 }}>
+          {categories.map((cat, i) => (
+            <Grid key={cat.id} size={{ xs: 6, sm: 6, md: i < 2 ? 6 : 4 }}>
+              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={fadeUp}>
+                <Card component={Link} to={`/kpj-garments/products/${cat.id}`}
+                  sx={{
+                    textDecoration: "none", position: "relative", overflow: "hidden", borderRadius: { xs: 2, md: 3 },
+                    height: { xs: 160, sm: 200, md: i < 2 ? 320 : 260 },
+                    cursor: "pointer", "&:hover img": { transform: "scale(1.08)" },
+                    "&:hover .overlay": { background: "rgba(10,22,40,0.6)" },
+                  }}>
+                  <CardMedia component="img" image={cat.image} alt={cat.name}
+                    sx={{ height: "100%", objectFit: "cover", transition: "transform 0.5s ease" }} />
+                  <Box className="overlay" sx={{
+                    position: "absolute", inset: 0, background: "rgba(10,22,40,0.45)", transition: "background 0.4s",
+                    display: "flex", flexDirection: "column", justifyContent: "flex-end",
+                    p: { xs: 1.5, sm: 2, md: 3 },
+                  }}>
+                    <Typography variant="h5" sx={{ color: "#fff", mb: 0.5, fontSize: { xs: 14, sm: 16, md: 22 } }}>{cat.name}</Typography>
+                    <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.8)", display: { xs: "none", sm: "block" }, fontSize: { sm: 12, md: 14 } }}>
+                      {cat.description}
+                    </Typography>
+                  </Box>
+                </Card>
+              </motion.div>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
+    </Box>
+
+    {/* Why Choose KPJ */}
+    <Box sx={{ py: { xs: 5, md: 10 } }}>
+      <Container maxWidth="lg">
+        <Grid container spacing={{ xs: 3, md: 6 }} alignItems="center">
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Typography variant="h2" sx={{ fontSize: { xs: "1.5rem", sm: "1.8rem", md: "2.5rem" }, color: "#1E3A5F", mb: { xs: 2, md: 3 } }}>
+              Why Choose <Box component="span" sx={{ color: "#3393E0" }}>KPJ?</Box>
+            </Typography>
+            <Stack spacing={{ xs: 2, md: 3 }}>
+              {[
+                { icon: <CheckCircleIcon sx={{ color: "#3393E0" }} />, title: "Premium Quality", desc: "Only the finest fabrics and inks for prints that last" },
+                { icon: <BrushIcon sx={{ color: "#F5A623" }} />, title: "Custom Designs", desc: "Sublimation, DTF, screen printing — we do it all" },
+                { icon: <LocalShippingIcon sx={{ color: "#3393E0" }} />, title: "Express Delivery", desc: "48-hour turnaround on most orders" },
+                { icon: <GroupsIcon sx={{ color: "#F5A623" }} />, title: "No Minimums", desc: "Single piece or bulk — same quality, same care" },
+              ].map((item) => (
+                <Box key={item.title} sx={{ display: "flex", gap: 2, alignItems: "flex-start" }}>
+                  <Box sx={{ mt: 0.5 }}>{item.icon}</Box>
+                  <Box>
+                    <Typography variant="h6" sx={{ fontSize: { xs: 16, md: 18 }, color: "#1E3A5F" }}>{item.title}</Typography>
+                    <Typography variant="body2" sx={{ color: "#4A5568", fontSize: { xs: 13, md: 14 } }}>{item.desc}</Typography>
+                  </Box>
+                </Box>
               ))}
-            </div>
-          </section>
+            </Stack>
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Box sx={{ borderRadius: { xs: 3, md: 4 }, overflow: "hidden", boxShadow: "0 12px 40px rgba(0,0,0,0.12)" }}>
+              <img src="https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=800&q=80" alt="KPJ Quality" style={{ width: "100%", display: "block" }} />
+            </Box>
+          </Grid>
+        </Grid>
+      </Container>
+    </Box>
 
-          <section
-            style={{
-              background: "#22223b",
-              color: "#fff",
-              padding: "2.5rem 0",
-              textAlign: "center",
-            }}
-          >
-            <h3
-              style={{
-                fontSize: "clamp(1.2rem, 4vw, 26px)",
-                marginBottom: 12,
-              }}
-            >
-              Why Choose KPJ?
-            </h3>
-            <ul
-              style={{
-                listStyle: "none",
-                padding: 0,
-                margin: "0 auto",
-                maxWidth: 700,
-                display: "flex",
-                flexWrap: "wrap",
-                justifyContent: "center",
-                gap: "2rem",
-                fontSize: "clamp(1rem, 2.5vw, 17px)",
-                flexDirection: "row",
-              }}
-            >
-              <li>✔️ Premium, soft cotton fabrics</li>
-              <li>✔️ Unique, original designs</li>
-              <li>✔️ Fast, reliable shipping</li>
-              <li>✔️ Satisfaction guaranteed</li>
-              <li>✔️ All price ranges: affordable, trendy, and premium options</li>
-              <li>✔️ Trendy, stylish, and unique collections</li>
-              <li>✔️ Customization available for bulk and events</li>
-            </ul>
-          </section>
+    {/* Testimonials */}
+    <Box sx={{ py: { xs: 5, md: 10 }, bgcolor: "#1E3A5F" }}>
+      <Container maxWidth="lg">
+        <Typography variant="h2" sx={{ fontSize: { xs: "1.5rem", sm: "1.8rem", md: "2.5rem" }, color: "#fff", textAlign: "center", mb: { xs: 3, md: 6 } }}>
+          What Our Clients Say
+        </Typography>
+        <Grid container spacing={{ xs: 2, md: 3 }}>
+          {testimonials.map((t) => (
+            <Grid key={t.name} size={{ xs: 12, sm: 6, md: 3 }}>
+              <Box sx={{
+                bgcolor: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
+                borderRadius: { xs: 2, md: 3 }, p: { xs: 2, md: 3 }, height: "100%",
+              }}>
+                <Stack direction="row" spacing={0.5} sx={{ mb: 1.5 }}>
+                  {Array.from({ length: 5 }).map((_, i) => <StarIcon key={`star-${t.name}-${i}`} sx={{ color: "#F5A623", fontSize: { xs: 16, md: 18 } }} />)}
+                </Stack>
+                <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.7)", mb: 2, lineHeight: 1.7, fontSize: { xs: 13, md: 14 } }}>
+                  "{t.text}"
+                </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                  <Avatar sx={{ bgcolor: "#3393E0", width: { xs: 32, md: 36 }, height: { xs: 32, md: 36 }, fontSize: 14 }}>{t.name[0]}</Avatar>
+                  <Box>
+                    <Typography variant="body2" sx={{ color: "#fff", fontWeight: 600, fontSize: { xs: 13, md: 14 } }}>{t.name}</Typography>
+                    <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.5)" }}>{t.role}</Typography>
+                  </Box>
+                </Box>
+              </Box>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
+    </Box>
 
-          <footer
-            style={{
-              background: "#f8fafc",
-              color: "#4a4e69",
-              textAlign: "center",
-              padding: "1.5rem 0 1rem 0",
-              fontSize: "clamp(0.9rem, 2vw, 15px)",
-              borderTop: "1px solid #e5e7eb",
-            }}
-          >
-            <div style={{ marginBottom: 8 }}>
-              <strong>Contact us:</strong> info@kpjtshirts.com &nbsp;|&nbsp;
-              (+91) 8555909245 &nbsp;|&nbsp; IT Sez Rushikonda, Visakhapatnam
-            </div>
-            <div>
-              © {new Date().getFullYear()} KPJ T-Shirts. All rights reserved.
-            </div>
-          </footer>
-        </div>
-      )}
-    </>
-  );
+    {/* CTA */}
+    <Box sx={{ py: { xs: 5, md: 8 }, background: "linear-gradient(135deg, #3393E0 0%, #1a6fb5 100%)", textAlign: "center" }}>
+      <Container maxWidth="md">
+        <Typography variant="h3" sx={{ color: "#fff", fontSize: { xs: "1.3rem", sm: "1.6rem", md: "2.2rem" }, mb: 2 }}>
+          Ready to Create Your Custom Apparel?
+        </Typography>
+        <Typography variant="body1" sx={{ color: "rgba(255,255,255,0.85)", mb: { xs: 3, md: 4 }, maxWidth: 500, mx: "auto", fontSize: { xs: 14, md: 16 } }}>
+          Get in touch today for a free quote. No minimums, fast delivery, premium quality guaranteed.
+        </Typography>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} justifyContent="center" sx={{ px: { xs: 2, sm: 0 } }}>
+          <Button component={Link} to="/kpj-garments/contact" variant="contained" size="large"
+            sx={{ background: "#F5A623", color: "#1E3A5F", fontWeight: 700, px: { xs: 3, md: 5 }, "&:hover": { background: "#e8941a" } }}>
+            Contact Us
+          </Button>
+          <Button href="https://wa.me/918143670894" target="_blank" variant="outlined" size="large"
+            sx={{ borderColor: "#fff", color: "#fff", px: { xs: 3, md: 5 }, "&:hover": { borderColor: "#F5A623", bgcolor: "rgba(255,255,255,0.1)" } }}>
+            WhatsApp Us
+          </Button>
+        </Stack>
+      </Container>
+    </Box>
+  </Box>
+);
 };
 
 export default Home;
