@@ -68,3 +68,18 @@ export const getOrders = () => request("/api/orders");
 export const createOrder = (data) => request("/api/orders", { method: "POST", body: JSON.stringify(data) });
 export const updateOrder = (id, data) => request(`/api/orders/${id}`, { method: "PUT", body: JSON.stringify(data) });
 export const deleteOrder = (id) => request(`/api/orders/${id}`, { method: "DELETE" });
+
+// Reviews (public) — safe fetchers that never throw, return fallbacks on failure
+export async function getReviews() {
+  try {
+    const res = await fetch(`${API_BASE}/api/reviews`);
+    if (!res.ok) { console.warn("getReviews: server returned", res.status); return []; }
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  } catch (err) { console.warn("getReviews: failed to fetch reviews", err.message); return []; }
+}
+export async function submitReview(data) {
+  const res = await fetch(`${API_BASE}/api/reviews`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+  if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.error || "Failed to submit review"); }
+  return res.json();
+}

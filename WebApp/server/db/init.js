@@ -113,6 +113,30 @@ WHERE NOT EXISTS (SELECT 1 FROM categories LIMIT 1);
 
 -- Seed metrics row
 INSERT INTO metrics (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS reviews (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(200) NOT NULL,
+  role VARCHAR(100),
+  rating INTEGER DEFAULT 5 CHECK (rating >= 1 AND rating <= 5),
+  text TEXT NOT NULL,
+  approved BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Seed default reviews if empty
+INSERT INTO reviews (name, role, rating, text, created_at)
+SELECT * FROM (VALUES
+  ('Rajesh K.', 'Event Manager', 5, 'KPJ delivered 500 custom tees for our corporate event in just 3 days. The quality and print were outstanding.', NOW() - INTERVAL '30 days'),
+  ('Priya M.', 'School Principal', 5, 'We have been ordering school uniforms from KPJ for 2 years. Consistent quality and great pricing every time.', NOW() - INTERVAL '25 days'),
+  ('Anil S.', 'Gym Owner', 5, 'The sublimation jerseys for our gym are incredible. Vibrant colors that do not fade even after months of washing.', NOW() - INTERVAL '20 days'),
+  ('Sneha R.', 'Marketing Head', 5, 'Our promotional campaign tees were a huge hit. KPJ team helped us with design and delivered on time.', NOW() - INTERVAL '15 days'),
+  ('Vikram T.', 'MBA Student', 5, 'Got custom hoodies for our entire MBA batch. Everyone loved the quality and the turnaround was super fast.', NOW() - INTERVAL '10 days'),
+  ('Deepa N.', 'College Sports Captain', 4, 'Ordered track suits for our college sports team. Great fit, durable fabric, and the prints look professional.', NOW() - INTERVAL '5 days'),
+  ('Karthik R.', 'HR Manager', 5, 'Corporate uniforms for 200+ employees delivered perfectly. Embroidery quality is top-notch.', NOW() - INTERVAL '3 days'),
+  ('Meena L.', 'School Admin', 5, 'Bulk school uniform order handled seamlessly. The kids love the comfortable fabric.', NOW() - INTERVAL '1 day')
+) AS v(name, role, rating, text, created_at)
+WHERE NOT EXISTS (SELECT 1 FROM reviews LIMIT 1);
 `;
 
 // Migration: add new columns to existing tables if they don't exist
@@ -163,6 +187,17 @@ UPDATE quotes SET billing_phone = client_phone WHERE billing_phone IS NULL AND c
 
 -- Sync invoice counter to existing tax invoices
 UPDATE invoice_counter SET next_val = GREATEST(next_val, COALESCE((SELECT COUNT(*)+1 FROM quotes WHERE quote_type='tax_invoice'), 1)) WHERE id='tax_invoice';
+
+-- reviews table
+CREATE TABLE IF NOT EXISTS reviews (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(200) NOT NULL,
+  role VARCHAR(100),
+  rating INTEGER DEFAULT 5 CHECK (rating >= 1 AND rating <= 5),
+  text TEXT NOT NULL,
+  approved BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
 `;
 
 async function init() {
