@@ -1,165 +1,114 @@
-import { useEffect } from "react";
+import React from "react";
+import { Box, Container, Typography, Grid, Avatar } from "@mui/material";
+import { motion } from "framer-motion";
+import PrintIcon from "@mui/icons-material/Print";
+import PaletteIcon from "@mui/icons-material/Palette";
+import SpeedIcon from "@mui/icons-material/Speed";
+import VerifiedIcon from "@mui/icons-material/Verified";
 import kpjLogo from "../assets/kpjLogo.svg";
 
-// Simple fade-in animation using Intersection Observer
-const useScrollFadeIn = () => {
-  useEffect(() => {
-    const elements = document.querySelectorAll(".fade-in");
-    const observer = new window.IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("visible");
-          }
-        });
-      },
-      { threshold: 0.2 }
-    );
-    elements.forEach((el) => observer.observe(el));
-    return () => elements.forEach((el) => observer.unobserve(el));
-  }, []);
-};
+const fadeUp = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 
-const About = () => {
-  useScrollFadeIn();
+const services = [
+  { icon: <PrintIcon sx={{ fontSize: 28 }} />, title: "Sublimation Printing", desc: "Vibrant, all-over prints that never fade, crack, or peel. Perfect for jerseys, fashion tees, and custom designs." },
+  { icon: <PaletteIcon sx={{ fontSize: 28 }} />, title: "DTF Printing", desc: "Direct-to-Film technology for detailed, photo-quality prints on any fabric color." },
+  { icon: <SpeedIcon sx={{ fontSize: 28 }} />, title: "Screen Printing", desc: "Classic screen printing for bulk orders with consistent, durable results." },
+  { icon: <VerifiedIcon sx={{ fontSize: 28 }} />, title: "Embroidery", desc: "Professional embroidery for logos, monograms, and corporate branding." },
+];
 
-  return (
-    <div
-      style={{
-        padding: "2rem",
-        maxWidth: 800,
-        margin: "0 auto",
-        fontFamily: "Inter, Arial, sans-serif",
-        background:
-          "linear-gradient(321deg, rgb(234 245 255) 0%, rgb(51 147 224) 100%)",
-        borderRadius: 18,
-        boxShadow: "0 4px 32px rgba(0,0,0,0.07)",
-      }}
-    >
-      <style>
-        {`
-          .fade-in {
-            opacity: 0;
-            transform: translateY(40px);
-            transition: opacity 0.9s cubic-bezier(.4,0,.2,1), transform 0.9s cubic-bezier(.4,0,.2,1);
-          }
-          .fade-in.visible {
-            opacity: 1;
-            transform: none;
-          }
-          .about-title {
-            font-size: 2.5rem;
-            font-weight: 800;
-            letter-spacing: -1px;
-            background: linear-gradient(90deg, #6366f1 30%, #ec4899 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: slideIn 1.2s cubic-bezier(.4,0,.2,1);
-          }
-          @keyframes slideIn {
-            from { opacity: 0; transform: translateY(-40px);}
-            to { opacity: 1; transform: none;}
-          }
-          .about-highlight {
-            background: linear-gradient(90deg, #fbbf24 30%, #f472b6 100%);
-            border-radius: 0.4em;
-            padding: 0.1em 0.4em;
-            color: #fff;
-            font-weight: 700;
-            margin: 0 0.2em;
-          }
-          .about-contact a {
-            color: #6366f1;
-            font-weight: 600;
-            text-decoration: none;
-            transition: color 0.2s;
-          }
-          .about-contact a:hover {
-            color: #ec4899;
-          }
-          .about-list {
-            margin: 2rem 0 1.5rem 0;
-            padding-left: 1.2rem;
-            font-size: 1.1rem;
-          }
-        `}
-      </style>
-      <img
-        src={kpjLogo}
-        alt="KPJ Logo"
-        style={{
-          height: 70,
-          marginBottom: 24,
-          filter: "drop-shadow(0 2px 8px #6366f133)",
-          animation: "slideIn 1.2s cubic-bezier(.4,0,.2,1)",
-        }}
-        className="fade-in"
-      />
-      <h2 className="about-title fade-in" style={{ marginBottom: 12 }}>
-        KPJ T-Shirts{" "}
-        <span role="img" aria-label="t-shirt">
-          👕
-        </span>
-      </h2>
-      <h3
-        className="fade-in"
-        style={{ fontWeight: 600, color: "#6366f1", marginBottom: 18 }}
-      >
-        Sublimation &amp; DTF Printing Experts
-      </h3>
-      <p className="fade-in" style={{ fontSize: "1.15rem", lineHeight: 1.7 }}>
-        <span className="about-highlight">Elite Custom Apparel</span> for
-        everyone. At <strong>KPJ T-Shirts</strong>, we blend{" "}
-        <span className="about-highlight">creativity</span>,{" "}
-        <span className="about-highlight">quality</span>, and{" "}
-        <span className="about-highlight">speed</span> to deliver premium custom
-        garments that make you stand out.
-      </p>
-      <ul className="about-list fade-in">
-        <li>All types of t-shirts, kurtas, tank tops &amp; more</li>
-        <li>
-          Exclusive <span className="about-highlight">sublimation</span> &amp;{" "}
-          <span className="about-highlight">DTF</span> prints
-        </li>
-        <li>Custom designs for individuals, teams, events, and businesses</li>
-        <li>Bulk orders &amp; single pieces—no minimums</li>
-        <li>Vibrant, long-lasting prints using the latest technology</li>
-        <li>Lightning-fast turnaround &amp; reliable service</li>
-      </ul>
-      <p className="fade-in" style={{ fontSize: "1.1rem", marginBottom: 0 }}>
-        <strong>Why choose us?</strong> <br />
-        <span style={{ color: "#f59e42", fontWeight: 600 }}>
-          • 100% Satisfaction Guarantee
-        </span>{" "}
-        <br />
-        <span style={{ color: "#6366f1", fontWeight: 600 }}>
-          • Personalized support from design to delivery
-        </span>{" "}
-        <br />
-        <span style={{ color: "#ec4899", fontWeight: 600 }}>
-          • Trusted by hundreds of happy customers
-        </span>
-      </p>
-      <div
-        className="about-contact fade-in"
-        style={{ margin: "2rem 0 1rem 0", fontSize: "1.2rem" }}
-      >
-        <strong>Contact us today:</strong>
-        <br />
-        📞 <a href="tel:8074175884">80741 75884</a> |{" "}
-        <a href="tel:8555909245">85559 09245</a>
-      </div>
-      <p
-        className="fade-in"
-        style={{ fontStyle: "italic", color: "#64748b", fontSize: "1.1rem" }}
-      >
-        KPJ T-Shirts – Where your ideas meet fabric!{" "}
-        <span role="img" aria-label="spark">
-          💥
-        </span>
-      </p>
-    </div>
-  );
-};
+const About = () => (
+  <Box sx={{ width: "100%" }}>
+    {/* Hero */}
+    <Box sx={{
+      py: { xs: 5, md: 10 }, background: "linear-gradient(135deg, #1E3A5F 0%, #122a4a 100%)",
+      position: "relative", overflow: "hidden",
+    }}>
+      <Container maxWidth="lg">
+        <Grid container spacing={{ xs: 3, md: 6 }} alignItems="center">
+          <Grid size={{ xs: 12, md: 6 }}>
+            <motion.div initial="hidden" animate="visible" variants={fadeUp}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
+                <img src={kpjLogo} alt="KPJ" style={{ height: 40, background: "rgba(255,255,255,0.1)", borderRadius: 12, padding: 8 }} />
+                <Typography variant="h6" sx={{ color: "#F5A623", fontWeight: 700, fontSize: { xs: 14, md: 18 } }}>Est. Visakhapatnam</Typography>
+              </Box>
+              <Typography variant="h2" sx={{
+                color: "#fff", fontSize: { xs: "1.6rem", sm: "2rem", md: "2.8rem" },
+                mb: { xs: 2, md: 3 }, lineHeight: 1.2,
+              }}>
+                Crafting Premium Apparel with <Box component="span" sx={{ color: "#3393E0" }}>Passion & Precision</Box>
+              </Typography>
+              <Typography variant="body1" sx={{ color: "rgba(255,255,255,0.7)", lineHeight: 1.8, mb: 2, fontSize: { xs: 14, md: 16 } }}>
+                KPJ T-Shirts is Visakhapatnam's trusted name in custom apparel. We specialize in sublimation, DTF, and screen printing — delivering everything from single custom pieces to large-scale bulk orders with the same dedication to quality.
+              </Typography>
+              <Typography variant="body1" sx={{ color: "rgba(255,255,255,0.7)", lineHeight: 1.8, fontSize: { xs: 14, md: 16 } }}>
+                Whether you need promotional tees for a campaign, uniforms for your team, or trendy streetwear — we bring your vision to life on fabric.
+              </Typography>
+            </motion.div>
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, delay: 0.2 }}>
+              <Box sx={{ borderRadius: { xs: 3, md: 4 }, overflow: "hidden", boxShadow: "0 20px 60px rgba(0,0,0,0.3)" }}>
+                <img src="https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800&q=80" alt="KPJ Workshop" style={{ width: "100%", display: "block" }} />
+              </Box>
+            </motion.div>
+          </Grid>
+        </Grid>
+      </Container>
+    </Box>
+
+    {/* Services */}
+    <Box sx={{ py: { xs: 5, md: 10 }, bgcolor: "#F8FBFF" }}>
+      <Container maxWidth="lg">
+        <Typography variant="h2" sx={{ textAlign: "center", fontSize: { xs: "1.5rem", sm: "1.8rem", md: "2.5rem" }, color: "#1E3A5F", mb: 1.5 }}>
+          Our Printing Services
+        </Typography>
+        <Typography variant="body1" sx={{ textAlign: "center", color: "#4A5568", mb: { xs: 3, md: 6 }, maxWidth: 500, mx: "auto", fontSize: { xs: 14, md: 16 } }}>
+          State-of-the-art printing technology for every need
+        </Typography>
+        <Grid container spacing={{ xs: 2, md: 3 }}>
+          {services.map((s) => (
+            <Grid key={s.title} size={{ xs: 6, sm: 6, md: 3 }}>
+              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
+                <Box sx={{
+                  p: { xs: 2, md: 3 }, borderRadius: { xs: 2, md: 3 }, bgcolor: "#fff", border: "1px solid #E2E8F0", height: "100%",
+                  transition: "all 0.3s", "&:hover": { boxShadow: "0 8px 30px rgba(51,147,224,0.12)", borderColor: "#3393E0" },
+                }}>
+                  <Avatar sx={{ bgcolor: "rgba(51,147,224,0.1)", color: "#3393E0", width: { xs: 44, md: 56 }, height: { xs: 44, md: 56 }, mb: 1.5 }}>
+                    {s.icon}
+                  </Avatar>
+                  <Typography variant="h6" sx={{ fontSize: { xs: 14, md: 18 }, color: "#1E3A5F", mb: 0.5 }}>{s.title}</Typography>
+                  <Typography variant="body2" sx={{ color: "#4A5568", lineHeight: 1.7, fontSize: { xs: 12, md: 14 } }}>{s.desc}</Typography>
+                </Box>
+              </motion.div>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
+    </Box>
+
+    {/* Values */}
+    <Box sx={{ py: { xs: 5, md: 10 } }}>
+      <Container maxWidth="md" sx={{ textAlign: "center" }}>
+        <Typography variant="h2" sx={{ fontSize: { xs: "1.5rem", sm: "1.8rem", md: "2.5rem" }, color: "#1E3A5F", mb: { xs: 3, md: 6 } }}>
+          What Drives Us
+        </Typography>
+        <Grid container spacing={{ xs: 2, md: 4 }}>
+          {[
+            { emoji: "🎯", title: "Quality First", desc: "We never compromise on fabric quality or print precision" },
+            { emoji: "⚡", title: "Speed", desc: "48-hour express delivery on most orders" },
+            { emoji: "🤝", title: "Trust", desc: "Transparent pricing, no hidden costs, 100% satisfaction" },
+            { emoji: "🎨", title: "Creativity", desc: "Free design assistance to bring your ideas to life" },
+          ].map((v) => (
+            <Grid key={v.title} size={{ xs: 6, md: 3 }}>
+              <Typography sx={{ fontSize: { xs: 32, md: 40 }, mb: 1 }}>{v.emoji}</Typography>
+              <Typography variant="h6" sx={{ fontSize: { xs: 14, md: 16 }, color: "#1E3A5F", mb: 0.5 }}>{v.title}</Typography>
+              <Typography variant="body2" sx={{ color: "#4A5568", fontSize: { xs: 12, md: 14 } }}>{v.desc}</Typography>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
+    </Box>
+  </Box>
+);
 
 export default About;
