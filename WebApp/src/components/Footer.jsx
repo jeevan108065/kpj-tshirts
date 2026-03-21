@@ -16,7 +16,6 @@ const Footer = () => (
         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
             <img src={kpjLogo} alt="KPJ" style={{ height: 32, marginRight: 10 }} />
-            <Typography variant="h6" fontWeight={800}>KPJ</Typography>
           </Box>
           <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.6)", mb: 2, maxWidth: 300, fontSize: { xs: 13, md: 14 } }}>
             Your one-stop destination for premium custom apparel. From t-shirts to tracksuits, we deliver quality that speaks.
