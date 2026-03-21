@@ -49,19 +49,19 @@ const Header = () => {
         <Container maxWidth="xl">
           <Toolbar sx={{ px: { xs: 0 }, minHeight: { xs: 56, md: 72 } }} disableGutters>
             {/* Logo */}
-            <Box component={Link} to="/" sx={{ display: "flex", alignItems: "center", textDecoration: "none", mr: { xs: 1, md: 4 } }}>
-              <img src={kpjLogo} alt="KPJ Logo" style={{ height: 32 }} />
+            <Box component={Link} to="/" sx={{ display: "flex", alignItems: "center", textDecoration: "none", mr: { xs: 1, md: 2 } }}>
+              <img src={kpjLogo} alt="KPJ Logo" style={{ height: 50 }} />
             </Box>
 
             {/* Desktop Nav */}
             <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", gap: 0.5, flexGrow: 1 }}>
-              <Button component={Link} to="/" sx={{ color: isActive("/") ? "#F5A623" : "#fff", fontWeight: 600, "&:hover": { color: "#F5A623" } }}>
+              <Button component={Link} to="/" sx={{ color: isActive("/") ? "#F5A623" : "#fff", fontWeight: 600, fontSize: "1rem", "&:hover": { color: "#F5A623" } }}>
                 Home
               </Button>
               <Button
                 onClick={(e) => setAnchorEl(e.currentTarget)}
                 endIcon={<ExpandMore />}
-                sx={{ color: isProductActive ? "#F5A623" : "#fff", fontWeight: 600, "&:hover": { color: "#F5A623" } }}
+                sx={{ color: isProductActive ? "#F5A623" : "#fff", fontWeight: 600, fontSize: "1rem", "&:hover": { color: "#F5A623" } }}
               >
                 Products
               </Button>
@@ -87,17 +87,17 @@ const Header = () => {
                     sx={{
                       color: isActive(item.to) ? "#F5A623" : "#fff",
                       "&:hover": { background: "rgba(51,147,224,0.15)", color: "#F5A623" },
-                      py: 1.2, px: 3, fontSize: 15,
+                      py: 1.2, px: 3, fontSize: "1rem",
                     }}
                   >
                     {item.label}
                   </MenuItem>
                 ))}
               </Menu>
-              <Button component={Link} to="/about" sx={{ color: isActive("/about") ? "#F5A623" : "#fff", fontWeight: 600, "&:hover": { color: "#F5A623" } }}>
+              <Button component={Link} to="/about" sx={{ color: isActive("/about") ? "#F5A623" : "#fff", fontWeight: 600, fontSize: "1rem", "&:hover": { color: "#F5A623" } }}>
                 About
               </Button>
-              <Button component={Link} to="/contact" sx={{ color: isActive("/contact") ? "#F5A623" : "#fff", fontWeight: 600, "&:hover": { color: "#F5A623" } }}>
+              <Button component={Link} to="/contact" sx={{ color: isActive("/contact") ? "#F5A623" : "#fff", fontWeight: 600, fontSize: "1rem", "&:hover": { color: "#F5A623" } }}>
                 Contact
               </Button>
             </Box>
