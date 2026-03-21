@@ -119,6 +119,7 @@ function paginated(baseQuery, { req, allowedFilters = {}, defaultOrder = "id DES
 }
 
 
+
 // ─── PUBLIC: Metrics ───
 app.get("/api/metrics", async (req, res) => {
   try {

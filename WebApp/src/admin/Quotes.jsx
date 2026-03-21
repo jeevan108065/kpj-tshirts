@@ -61,7 +61,7 @@ const Quotes = () => {
     try {
       setLoading(true);
       const res = await api.getQuotes({ page, limit, search: filterSearch || undefined, status: filterStatus || undefined, type: tabTypes[tab] });
-      setRows(res.rows); setTotal(res.total);
+      setRows(res.rows || []); setTotal(res.total || 0);
     } catch (err) { toast(err.message); }
     finally { setLoading(false); }
   }, [page, limit, filterSearch, filterStatus, tab]);

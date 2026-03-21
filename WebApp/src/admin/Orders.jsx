@@ -41,7 +41,7 @@ const Orders = () => {
     try {
       setLoading(true);
       const res = await api.getOrders({ page, limit, search: filterClient || undefined, status: filterStatus || undefined, date_from: filterDateFrom || undefined, date_to: filterDateTo || undefined });
-      setRows(res.rows); setTotal(res.total);
+      setRows(res.rows || []); setTotal(res.total || 0);
     } catch (err) { toast(err.message); }
     finally { setLoading(false); }
   }, [page, limit, filterClient, filterStatus, filterDateFrom, filterDateTo]);
