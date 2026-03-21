@@ -95,6 +95,30 @@ function sanitize(str) {
   return str.replace(/<[^>]*>/g, "").trim();
 }
 
+// ─── Pagination + filter helper ───
+function paginated(baseQuery, { req, allowedFilters = {}, defaultOrder = "id DESC" }) {
+  const page = Math.max(1, parseInt(req.query.page) || 1);
+  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10));
+  const offset = (page - 1) * limit;
+  const conditions = [];
+  const params = [];
+  let idx = 1;
+  for (const [qKey, { col, op = "ILIKE" }] of Object.entries(allowedFilters)) {
+    const val = req.query[qKey];
+    if (!val) continue;
+    if (op === "ILIKE") { conditions.push(`${col} ILIKE $${idx}`); params.push(`%${val}%`); }
+    else if (op === "=") { conditions.push(`${col} = $${idx}`); params.push(val); }
+    else if (op === ">=") { conditions.push(`${col} >= $${idx}`); params.push(val); }
+    else if (op === "<=") { conditions.push(`${col} <= $${idx}`); params.push(val); }
+    idx++;
+  }
+  const where = conditions.length ? ` WHERE ${conditions.join(" AND ")}` : "";
+  const countSql = `SELECT COUNT(*) FROM (${baseQuery}${where}) _t`;
+  const dataSql = `${baseQuery}${where} ORDER BY ${defaultOrder} LIMIT $${idx} OFFSET $${idx + 1}`;
+  return { countSql, dataSql, params, limit, offset, page };
+}
+
+
 // ─── PUBLIC: Metrics ───
 app.get("/api/metrics", async (req, res) => {
   try {
@@ -144,9 +168,13 @@ app.post("/api/auth/login", rateLimit(60000, 10), (req, res) => {
 // ─── Categories (with subcategory support) ───
 app.get("/api/categories", async (req, res) => {
   try {
-    const { rows } = await pool.query("SELECT * FROM categories ORDER BY parent_id NULLS FIRST, id");
-    res.json(rows);
-  } catch (err) { console.error("GET /api/categories error:", err.message); res.json([]); }
+    const { countSql, dataSql, params, limit, offset, page } = paginated(
+      "SELECT * FROM categories", { req, allowedFilters: { search: { col: "name", op: "ILIKE" } }, defaultOrder: "parent_id NULLS FIRST, id" }
+    );
+    const total = parseInt((await pool.query(countSql, params)).rows[0].count);
+    const { rows } = await pool.query(dataSql, [...params, limit, offset]);
+    res.json({ rows, total, page, limit });
+  } catch (err) { console.error("GET /api/categories error:", err.message); res.json({ rows: [], total: 0, page: 1, limit: 10 }); }
 });
 app.post("/api/categories", adminAuth, async (req, res) => {
   try {
@@ -173,9 +201,13 @@ app.delete("/api/categories/:id", adminAuth, async (req, res) => {
 // ─── Payment Methods ───
 app.get("/api/payment-methods", async (req, res) => {
   try {
-    const { rows } = await pool.query("SELECT * FROM payment_methods ORDER BY is_default DESC, id");
-    res.json(rows);
-  } catch (err) { console.error("GET /api/payment-methods error:", err.message); res.json([]); }
+    const { countSql, dataSql, params, limit, offset, page } = paginated(
+      "SELECT * FROM payment_methods", { req, allowedFilters: { search: { col: "label", op: "ILIKE" }, type: { col: "type", op: "=" } }, defaultOrder: "is_default DESC, id" }
+    );
+    const total = parseInt((await pool.query(countSql, params)).rows[0].count);
+    const { rows } = await pool.query(dataSql, [...params, limit, offset]);
+    res.json({ rows, total, page, limit });
+  } catch (err) { console.error("GET /api/payment-methods error:", err.message); res.json({ rows: [], total: 0, page: 1, limit: 10 }); }
 });
 app.post("/api/payment-methods", adminAuth, async (req, res) => {
   try {
@@ -209,9 +241,13 @@ app.delete("/api/payment-methods/:id", adminAuth, async (req, res) => {
 // ─── Products / Inventory ───
 app.get("/api/products", async (req, res) => {
   try {
-    const { rows } = await pool.query("SELECT * FROM product_types ORDER BY id DESC");
-    res.json(rows);
-  } catch (err) { console.error("GET /api/products error:", err.message); res.json([]); }
+    const { countSql, dataSql, params, limit, offset, page } = paginated(
+      "SELECT * FROM product_types", { req, allowedFilters: { search: { col: "name", op: "ILIKE" }, category: { col: "category", op: "=" } }, defaultOrder: "id DESC" }
+    );
+    const total = parseInt((await pool.query(countSql, params)).rows[0].count);
+    const { rows } = await pool.query(dataSql, [...params, limit, offset]);
+    res.json({ rows, total, page, limit });
+  } catch (err) { console.error("GET /api/products error:", err.message); res.json({ rows: [], total: 0, page: 1, limit: 10 }); }
 });
 app.post("/api/products", adminAuth, async (req, res) => {
   try {
@@ -243,8 +279,12 @@ app.delete("/api/products/:id", adminAuth, async (req, res) => {
 // ─── Leads ───
 app.get("/api/leads", adminAuth, async (req, res) => {
   try {
-    const { rows } = await pool.query("SELECT * FROM leads ORDER BY id DESC");
-    res.json(rows);
+    const { countSql, dataSql, params, limit, offset, page } = paginated(
+      "SELECT * FROM leads", { req, allowedFilters: { search: { col: "name", op: "ILIKE" }, status: { col: "status", op: "=" } }, defaultOrder: "id DESC" }
+    );
+    const total = parseInt((await pool.query(countSql, params)).rows[0].count);
+    const { rows } = await pool.query(dataSql, [...params, limit, offset]);
+    res.json({ rows, total, page, limit });
   } catch (err) { console.error("GET /api/leads error:", err.message); res.status(500).json({ error: "Failed to fetch leads" }); }
 });
 app.post("/api/leads", adminAuth, async (req, res) => {
@@ -277,14 +317,16 @@ app.delete("/api/leads/:id", adminAuth, async (req, res) => {
 // ─── Quotes / Invoices ───
 app.get("/api/quotes", adminAuth, async (req, res) => {
   try {
-    const { rows } = await pool.query(`
-      SELECT q.*, pm.label as payment_label, pm.type as payment_type,
+    const base = `SELECT q.*, pm.label as payment_label, pm.type as payment_type,
              pm.bank_name as pm_bank_name, pm.bank_account as pm_bank_account,
              pm.bank_ifsc as pm_bank_ifsc, pm.bank_branch as pm_bank_branch, pm.upi_id as pm_upi_id
-      FROM quotes q LEFT JOIN payment_methods pm ON q.payment_method_id = pm.id
-      ORDER BY q.id DESC
-    `);
-    res.json(rows);
+      FROM quotes q LEFT JOIN payment_methods pm ON q.payment_method_id = pm.id`;
+    const { countSql, dataSql, params, limit, offset, page } = paginated(
+      base, { req, allowedFilters: { search: { col: "q.billing_name", op: "ILIKE" }, status: { col: "q.status", op: "=" }, type: { col: "q.quote_type", op: "=" } }, defaultOrder: "q.id DESC" }
+    );
+    const total = parseInt((await pool.query(countSql, params)).rows[0].count);
+    const { rows } = await pool.query(dataSql, [...params, limit, offset]);
+    res.json({ rows, total, page, limit });
   } catch (err) { console.error("GET /api/quotes error:", err.message); res.status(500).json({ error: "Failed to fetch quotes" }); }
 });
 
@@ -419,31 +461,30 @@ app.post("/api/reviews", rateLimit(60000, 5), async (req, res) => {
 // ─── Orders ───
 app.get("/api/orders", adminAuth, async (req, res) => {
   try {
-    const { rows } = await pool.query("SELECT * FROM orders ORDER BY id DESC");
-    res.json(rows);
+    const { countSql, dataSql, params, limit, offset, page } = paginated(
+      "SELECT * FROM orders", { req, allowedFilters: { search: { col: "client_name", op: "ILIKE" }, status: { col: "status", op: "=" }, date_from: { col: "COALESCE(delivered_at,created_at)::date", op: ">=" }, date_to: { col: "COALESCE(delivered_at,created_at)::date", op: "<=" } }, defaultOrder: "id DESC" }
+    );
+    const total = parseInt((await pool.query(countSql, params)).rows[0].count);
+    const { rows } = await pool.query(dataSql, [...params, limit, offset]);
+    res.json({ rows, total, page, limit });
   } catch (err) { console.error("GET /api/orders error:", err.message); res.status(500).json({ error: "Failed to fetch orders" }); }
 });
 app.post("/api/orders", adminAuth, async (req, res) => {
   try {
-    const { client_name, items, total_amount, total_qty, status } = req.body;
+    const { client_name, items, total_amount, total_qty, status, delivered_at } = req.body;
     const { rows } = await pool.query(
-      "INSERT INTO orders (client_name,items,total_amount,total_qty,status) VALUES ($1,$2,$3,$4,$5) RETURNING *",
-      [sanitize(client_name), items, total_amount || 0, total_qty || 0, status || "pending"]
+      "INSERT INTO orders (client_name,items,total_amount,total_qty,status,delivered_at) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *",
+      [sanitize(client_name), items, total_amount || 0, total_qty || 0, status || "pending", delivered_at || null]
     );
     res.json(rows[0]);
   } catch (err) { console.error("POST /api/orders error:", err.message); res.status(500).json({ error: "Failed to create order" }); }
 });
 app.put("/api/orders/:id", adminAuth, async (req, res) => {
   try {
-    const { client_name, items, total_amount, total_qty, status } = req.body;
-    let deliveredAt = null;
-    if (status === "delivered") {
-      const existing = (await pool.query("SELECT delivered_at FROM orders WHERE id=$1", [req.params.id])).rows[0];
-      deliveredAt = existing?.delivered_at || new Date().toISOString();
-    }
+    const { client_name, items, total_amount, total_qty, status, delivered_at } = req.body;
     const { rows } = await pool.query(
       "UPDATE orders SET client_name=$1,items=$2,total_amount=$3,total_qty=$4,status=$5,delivered_at=$6 WHERE id=$7 RETURNING *",
-      [sanitize(client_name), items, total_amount || 0, total_qty || 0, status, deliveredAt, req.params.id]
+      [sanitize(client_name), items, total_amount || 0, total_qty || 0, status, delivered_at || null, req.params.id]
     );
     res.json(rows[0]);
   } catch (err) { console.error("PUT /api/orders error:", err.message); res.status(500).json({ error: "Failed to update order" }); }
