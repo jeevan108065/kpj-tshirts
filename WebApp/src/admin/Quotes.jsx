@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   Box, Typography, Button, Paper, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Dialog, DialogTitle, DialogContent, DialogActions,
   TextField, MenuItem, IconButton, Stack, Chip, Grid, Divider, Tabs, Tab,
-  Checkbox, FormControlLabel, useMediaQuery, useTheme,
+  Checkbox, FormControlLabel, useMediaQuery, useTheme, CircularProgress,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
@@ -11,7 +11,10 @@ import PrintIcon from "@mui/icons-material/Print";
 import DeleteIcon from "@mui/icons-material/Delete";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import FilterListIcon from "@mui/icons-material/FilterList";
 import * as api from "../db/api";
+import { useToast } from "./ToastContext";
+import Pagination from "./Pagination";
 
 const COMPANY = {
   name: "KPJ Garments",
@@ -30,9 +33,13 @@ const emptyForm = {
   same_as_billing: true, items: [{ ...emptyItem }], payment_method_id: "",
   cgst_rate: 0, sgst_rate: 0, discount: 0, status: "draft",
 };
+const tabTypes = ["tax_invoice", "sample_quotation"];
 
 const Quotes = () => {
-  const [quotes, setQuotes] = useState([]);
+  const [rows, setRows] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
   const [products, setProducts] = useState([]);
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [open, setOpen] = useState(false);
@@ -41,15 +48,35 @@ const Quotes = () => {
   const [viewQuote, setViewQuote] = useState(null);
   const [tab, setTab] = useState(0);
   const [editId, setEditId] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [filterSearch, setFilterSearch] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const toast = useToast();
 
-  const load = async () => {
-    api.getQuotes().then(setQuotes).catch(() => {});
-    api.getProducts().then(setProducts).catch(() => {});
-    api.getPaymentMethods().then(setPaymentMethods).catch(() => {});
+  const loadQuotes = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await api.getQuotes({ page, limit, search: filterSearch || undefined, status: filterStatus || undefined, type: tabTypes[tab] });
+      setRows(res.rows); setTotal(res.total);
+    } catch (err) { toast(err.message); }
+    finally { setLoading(false); }
+  }, [page, limit, filterSearch, filterStatus, tab]);
+
+  const loadDropdowns = async () => {
+    try {
+      const [p, pm] = await Promise.all([api.getProducts({ limit: 200 }), api.getPaymentMethods({ limit: 100 })]);
+      setProducts(p.rows || p); setPaymentMethods(pm.rows || pm);
+    } catch (err) { toast(err.message); }
   };
-  useEffect(() => { load(); }, []);
+
+  useEffect(() => { loadDropdowns(); }, []);
+  useEffect(() => { loadQuotes(); }, [loadQuotes]);
+
+  const handleTabChange = (_, v) => { setTab(v); setPage(1); };
 
   const openNew = async (type = "tax_invoice") => {
     setEditId(null);
@@ -57,7 +84,10 @@ const Quotes = () => {
       const { quoteNumber } = await api.getNextQuoteNumber(type);
       setForm({ ...emptyForm, quote_type: type, quote_number: quoteNumber, items: [{ ...emptyItem }] });
       setOpen(true);
-    } catch { setForm({ ...emptyForm, quote_type: type, items: [{ ...emptyItem }] }); setOpen(true); }
+    } catch (err) {
+      toast(err.message);
+      setForm({ ...emptyForm, quote_type: type, items: [{ ...emptyItem }] }); setOpen(true);
+    }
   };
 
   const handleEdit = (q) => {
@@ -113,51 +143,60 @@ const Quotes = () => {
   };
 
   const handleSave = async () => {
-    const { subtotal, totalQty, cgstAmt, sgstAmt, grandTotal } = calcTotals();
-    const data = {
-      ...form, subtotal, total_qty: totalQty,
-      cgst_rate: Number.parseFloat(form.cgst_rate) || 0, sgst_rate: Number.parseFloat(form.sgst_rate) || 0,
-      cgst_amount: cgstAmt, sgst_amount: sgstAmt,
-      discount: Number.parseFloat(form.discount) || 0, grand_total: grandTotal,
-      payment_method_id: form.payment_method_id || null,
-    };
-    if (form.same_as_billing) {
-      data.shipping_name = data.billing_name;
-      data.shipping_address = data.billing_address;
-      data.shipping_phone = data.billing_phone;
-    }
-    if (editId) await api.updateQuote(editId, data);
-    else await api.createQuote(data);
-    setOpen(false); setEditId(null); load();
+    try {
+      setSaving(true);
+      const { subtotal, totalQty, cgstAmt, sgstAmt, grandTotal } = calcTotals();
+      const data = {
+        ...form, subtotal, total_qty: totalQty,
+        cgst_rate: Number.parseFloat(form.cgst_rate) || 0, sgst_rate: Number.parseFloat(form.sgst_rate) || 0,
+        cgst_amount: cgstAmt, sgst_amount: sgstAmt,
+        discount: Number.parseFloat(form.discount) || 0, grand_total: grandTotal,
+        payment_method_id: form.payment_method_id || null,
+      };
+      if (form.same_as_billing) {
+        data.shipping_name = data.billing_name;
+        data.shipping_address = data.billing_address;
+        data.shipping_phone = data.billing_phone;
+      }
+      if (editId) await api.updateQuote(editId, data);
+      else await api.createQuote(data);
+      setOpen(false); setEditId(null);
+      toast("Saved", "success"); loadQuotes();
+    } catch (err) { toast(err.message); }
+    finally { setSaving(false); }
   };
 
-  const handleDelete = async (id) => { await api.deleteQuote(id); load(); };
+  const handleDelete = async (id) => {
+    try { await api.deleteQuote(id); toast("Deleted", "success"); loadQuotes(); }
+    catch (err) { toast(err.message); }
+  };
   const handleView = (q) => { setViewQuote(q); setViewOpen(true); };
   const handlePrint = (q) => { setViewQuote(q); setViewOpen(true); setTimeout(() => globalThis.print(), 500); };
 
   const handleConvert = async (q) => {
     if (!globalThis.confirm("Convert this sample quotation to a Tax Invoice?")) return;
-    await api.convertQuote(q.id, {
-      billing_name: q.billing_name, billing_address: q.billing_address,
-      billing_gstin: q.billing_gstin, billing_phone: q.billing_phone, billing_email: q.billing_email,
-      shipping_name: q.shipping_name, shipping_address: q.shipping_address, shipping_phone: q.shipping_phone,
-      items: q.items, payment_method_id: q.payment_method_id,
-      subtotal: q.subtotal, cgst_rate: q.cgst_rate, sgst_rate: q.sgst_rate,
-      cgst_amount: q.cgst_amount, sgst_amount: q.sgst_amount,
-      discount: q.discount, grand_total: q.grand_total, total_qty: q.total_qty, status: "draft",
-    });
-    load();
+    try {
+      await api.convertQuote(q.id, {
+        billing_name: q.billing_name, billing_address: q.billing_address,
+        billing_gstin: q.billing_gstin, billing_phone: q.billing_phone, billing_email: q.billing_email,
+        shipping_name: q.shipping_name, shipping_address: q.shipping_address, shipping_phone: q.shipping_phone,
+        items: q.items, payment_method_id: q.payment_method_id,
+        subtotal: q.subtotal, cgst_rate: q.cgst_rate, sgst_rate: q.sgst_rate,
+        cgst_amount: q.cgst_amount, sgst_amount: q.sgst_amount,
+        discount: q.discount, grand_total: q.grand_total, total_qty: q.total_qty, status: "draft",
+      });
+      toast("Converted to Tax Invoice", "success"); loadQuotes();
+    } catch (err) { toast(err.message); }
   };
 
   const { subtotal, totalQty, cgstAmt, sgstAmt, grandTotal } = calcTotals();
-  const taxInvoices = quotes.filter((q) => q.quote_type === "tax_invoice");
-  const sampleQuotes = quotes.filter((q) => q.quote_type !== "tax_invoice");
+  const clearFilters = () => { setFilterSearch(""); setFilterStatus(""); setPage(1); };
 
   const renderMobileList = (list) => (
     <Stack spacing={1.5}>
       {list.length === 0 && (
         <Paper sx={{ p: 4, textAlign: "center", borderRadius: 2 }}>
-          <Typography sx={{ color: "#5A6F8A" }}>No records yet</Typography>
+          <Typography sx={{ color: "#5A6F8A" }}>No records found</Typography>
         </Paper>
       )}
       {list.map((q) => (
@@ -211,7 +250,7 @@ const Quotes = () => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {list.length === 0 && <TableRow><TableCell colSpan={7} align="center" sx={{ py: 4, color: "#5A6F8A" }}>No records yet</TableCell></TableRow>}
+          {list.length === 0 && <TableRow><TableCell colSpan={7} align="center" sx={{ py: 4, color: "#5A6F8A" }}>No records found</TableCell></TableRow>}
           {list.map((q) => (
             <TableRow key={q.id} hover>
               <TableCell sx={{ fontWeight: 600 }}>{q.quote_number}</TableCell>
@@ -242,7 +281,10 @@ const Quotes = () => {
         <Typography variant="h5" sx={{ fontWeight: 700, color: "#1E3A5F", fontSize: { xs: 16, md: 24 } }}>
           Quotations & Invoices
         </Typography>
-        <Stack direction="row" spacing={1}>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <IconButton size="small" onClick={() => setShowFilters((v) => !v)} color={showFilters ? "primary" : "default"}>
+            <FilterListIcon fontSize="small" />
+          </IconButton>
           <Button variant="contained" startIcon={<AddIcon />} size={isMobile ? "small" : "medium"} onClick={() => openNew("tax_invoice")}>
             Tax Invoice
           </Button>
@@ -251,15 +293,32 @@ const Quotes = () => {
           </Button>
         </Stack>
       </Stack>
-      <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }}
+
+      {showFilters && (
+        <Paper sx={{ p: 2, mb: 2, borderRadius: 2 }}>
+          <Stack direction={{ xs: "column", md: "row" }} spacing={1.5} alignItems={{ md: "center" }}>
+            <TextField label="Client" size="small" value={filterSearch} onChange={(e) => setFilterSearch(e.target.value)} onKeyDown={(e) => e.key === "Enter" && setPage(1)} sx={{ minWidth: 180 }} />
+            <TextField label="Status" select size="small" value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }} sx={{ minWidth: 130 }}>
+              <MenuItem value="">All</MenuItem>
+              {["draft", "sent", "accepted", "rejected"].map((s) => <MenuItem key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</MenuItem>)}
+            </TextField>
+            <Button size="small" variant="outlined" onClick={() => setPage(1)}>Search</Button>
+            <Button size="small" onClick={clearFilters}>Clear</Button>
+          </Stack>
+        </Paper>
+      )}
+
+      <Tabs value={tab} onChange={handleTabChange} sx={{ mb: 2 }}
         variant={isMobile ? "fullWidth" : "standard"}>
-        <Tab label={`Invoices (${taxInvoices.length})`} sx={{ fontSize: { xs: 12, md: 14 } }} />
-        <Tab label={`Quotes (${sampleQuotes.length})`} sx={{ fontSize: { xs: 12, md: 14 } }} />
+        <Tab label={`Invoices${!loading ? ` (${tab === 0 ? total : ""})` : ""}`} sx={{ fontSize: { xs: 12, md: 14 } }} />
+        <Tab label={`Quotes${!loading ? ` (${tab === 1 ? total : ""})` : ""}`} sx={{ fontSize: { xs: 12, md: 14 } }} />
       </Tabs>
-      {isMobile
-        ? (tab === 0 ? renderMobileList(taxInvoices) : renderMobileList(sampleQuotes))
-        : (tab === 0 ? renderTable(taxInvoices) : renderTable(sampleQuotes))
-      }
+
+      {loading ? (
+        <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}><CircularProgress /></Box>
+      ) : isMobile ? renderMobileList(rows) : renderTable(rows)}
+
+      {!loading && <Pagination page={page} total={total} limit={limit} onPageChange={setPage} onLimitChange={(l) => { setLimit(l); setPage(1); }} />}
 
       {/* Create/Edit Dialog */}
       <Dialog open={open} onClose={() => { setOpen(false); setEditId(null); }} maxWidth="md" fullWidth fullScreen={isMobile}>
@@ -357,7 +416,7 @@ const Quotes = () => {
         </DialogContent>
         <DialogActions sx={{ px: { xs: 2, md: 3 }, pb: 2 }}>
           <Button onClick={() => { setOpen(false); setEditId(null); }}>Cancel</Button>
-          <Button variant="contained" onClick={handleSave}>{editId ? "Update" : "Save"}</Button>
+          <Button variant="contained" onClick={handleSave} disabled={saving}>{saving ? "Saving…" : editId ? "Update" : "Save"}</Button>
         </DialogActions>
       </Dialog>
 

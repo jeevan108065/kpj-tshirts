@@ -16,7 +16,6 @@ const Footer = () => (
         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
             <img src={kpjLogo} alt="KPJ" style={{ height: 32, marginRight: 10 }} />
-            <Typography variant="h6" fontWeight={800}>KPJ</Typography>
           </Box>
           <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.6)", mb: 2, maxWidth: 300, fontSize: { xs: 13, md: 14 } }}>
             Your one-stop destination for premium custom apparel. From t-shirts to tracksuits, we deliver quality that speaks.
@@ -38,7 +37,7 @@ const Footer = () => (
         <Grid size={{ xs: 6, sm: 3, md: 2 }}>
           <Typography variant="subtitle2" sx={{ color: "#F5A623", mb: 1.5, fontWeight: 700, fontSize: { xs: 13, md: 14 } }}>Products</Typography>
           {["tshirts", "promotional", "sublimation", "uniforms", "tracks"].map((id) => (
-            <Typography key={id} component={Link} to={`/kpj-garments/products/${id}`}
+            <Typography key={id} component={Link} to={`/products/${id}`}
               sx={{ display: "block", color: "rgba(255,255,255,0.6)", textDecoration: "none", mb: 0.8, fontSize: { xs: 13, md: 14 }, "&:hover": { color: "#F5A623" } }}>
               {id === "tshirts" ? "T-Shirts" : id === "promotional" ? "Promotional" : id === "sublimation" ? "Sublimation" : id === "uniforms" ? "Uniforms" : "Tracks"}
             </Typography>
@@ -47,7 +46,7 @@ const Footer = () => (
 
         <Grid size={{ xs: 6, sm: 3, md: 2 }}>
           <Typography variant="subtitle2" sx={{ color: "#F5A623", mb: 1.5, fontWeight: 700, fontSize: { xs: 13, md: 14 } }}>Company</Typography>
-          {[{ label: "Home", to: "/kpj-garments/" }, { label: "About", to: "/kpj-garments/about" }, { label: "Contact", to: "/kpj-garments/contact" }].map((item) => (
+          {[{ label: "Home", to: "/" }, { label: "About", to: "/about" }, { label: "Contact", to: "/contact" }].map((item) => (
             <Typography key={item.to} component={Link} to={item.to}
               sx={{ display: "block", color: "rgba(255,255,255,0.6)", textDecoration: "none", mb: 0.8, fontSize: { xs: 13, md: 14 }, "&:hover": { color: "#F5A623" } }}>
               {item.label}

@@ -17,13 +17,13 @@ import { useNavigate, useLocation, Outlet } from "react-router-dom";
 const DRAWER_WIDTH = 240;
 
 const menuItems = [
-  { label: "Dashboard", icon: <DashboardIcon />, path: "/kpj-garments/admin" },
-  { label: "Leads", icon: <PeopleIcon />, path: "/kpj-garments/admin/leads" },
-  { label: "Quotations", icon: <ReceiptIcon />, path: "/kpj-garments/admin/quotes" },
-  { label: "Orders", icon: <ShoppingCartIcon />, path: "/kpj-garments/admin/orders" },
-  { label: "Inventory", icon: <InventoryIcon />, path: "/kpj-garments/admin/inventory" },
-  { label: "Categories", icon: <CategoryIcon />, path: "/kpj-garments/admin/categories" },
-  { label: "Payments", icon: <PaymentIcon />, path: "/kpj-garments/admin/payments" },
+  { label: "Dashboard", icon: <DashboardIcon />, path: "/admin" },
+  { label: "Leads", icon: <PeopleIcon />, path: "/admin/leads" },
+  { label: "Quotations", icon: <ReceiptIcon />, path: "/admin/quotes" },
+  { label: "Orders", icon: <ShoppingCartIcon />, path: "/admin/orders" },
+  { label: "Inventory", icon: <InventoryIcon />, path: "/admin/inventory" },
+  { label: "Categories", icon: <CategoryIcon />, path: "/admin/categories" },
+  { label: "Payments", icon: <PaymentIcon />, path: "/admin/payments" },
 ];
 
 const AdminLayout = ({ onLogout }) => {

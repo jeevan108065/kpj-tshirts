@@ -6,6 +6,7 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import EmailIcon from "@mui/icons-material/Email";
 import { categories, products } from "../data/products";
+import SEO from "../components/SEO";
 
 const fadeUp = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 
@@ -26,13 +27,19 @@ const Products = () => {
     return (
       <Container maxWidth="md" sx={{ py: 10, textAlign: "center" }}>
         <Typography variant="h4" sx={{ mb: 2 }}>Category not found</Typography>
-        <Button component={Link} to="/kpj-garments/" variant="contained">Go Home</Button>
+        <Button component={Link} to="/" variant="contained">Go Home</Button>
       </Container>
     );
   }
 
   return (
     <Box sx={{ width: "100%" }}>
+      <SEO
+        title={`${category.name} — Custom Printed ${category.name} in Visakhapatnam`}
+        description={`Buy custom ${category.name.toLowerCase()} in Visakhapatnam. ${category.description}. Sublimation, DTF, screen printing. Bulk orders welcome. Fast delivery by KPJ Garments.`}
+        path={`/products/${categoryId}`}
+        keywords={`${category.name} Visakhapatnam, custom ${category.name.toLowerCase()}, ${category.name.toLowerCase()} printing, bulk ${category.name.toLowerCase()}, KPJ ${category.name.toLowerCase()}`}
+      />
       {/* Hero Banner */}
       <Box sx={{
         position: "relative", height: { xs: 200, sm: 260, md: 360 }, overflow: "hidden",
@@ -42,7 +49,7 @@ const Products = () => {
         <Container maxWidth="lg">
           <motion.div initial="hidden" animate="visible" variants={fadeUp}>
             <Breadcrumbs sx={{ mb: 1.5, "& .MuiBreadcrumbs-separator": { color: "rgba(255,255,255,0.5)" } }}>
-              <Typography component={Link} to="/kpj-garments/" sx={{ color: "rgba(255,255,255,0.7)", textDecoration: "none", fontSize: { xs: 13, md: 16 }, "&:hover": { color: "#F5A623" } }}>
+              <Typography component={Link} to="/" sx={{ color: "rgba(255,255,255,0.7)", textDecoration: "none", fontSize: { xs: 13, md: 16 }, "&:hover": { color: "#F5A623" } }}>
                 Home
               </Typography>
               <Typography sx={{ color: "#F5A623", fontSize: { xs: 13, md: 16 } }}>{category.name}</Typography>
@@ -113,7 +120,7 @@ const Products = () => {
           <Typography variant="body1" sx={{ color: "rgba(255,255,255,0.7)", mb: 3, fontSize: { xs: 13, md: 16 } }}>
             We offer custom designs, bulk orders, and express delivery. Let's create something amazing together.
           </Typography>
-          <Button component={Link} to={`/kpj-garments/quote?product=${encodeURIComponent(category.name)}`} variant="contained" size="large" endIcon={<ArrowForwardIcon />}
+          <Button component={Link} to={`/quote?product=${encodeURIComponent(category.name)}`} variant="contained" size="large" endIcon={<ArrowForwardIcon />}
             sx={{ background: "linear-gradient(135deg, #F5A623, #e8941a)", color: "#1E3A5F", fontWeight: 700, px: { xs: 3, md: 4 } }}>
             Get a Free Quote
           </Button>

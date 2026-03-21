@@ -10,6 +10,7 @@ import DownloadIcon from "@mui/icons-material/Download";
 import QRCode from "react-qr-code";
 import kpjLogo from "../assets/kpjLogo.svg";
 import QuoteForm from "../components/QuoteForm";
+import SEO from "../components/SEO";
 
 const contact = {
   name: "KPJ Garments",
@@ -37,6 +38,12 @@ const Contact = () => {
 
   return (
     <Box sx={{ width: "100%" }}>
+      <SEO
+        title="Contact Us — Get a Free Quote"
+        description="Contact KPJ Garments Visakhapatnam for custom t-shirts, uniforms, sublimation printing. Call +91 80741 75884 or WhatsApp. IT SEZ Rushikonda, Visakhapatnam."
+        path="/contact"
+        keywords="KPJ contact, custom t-shirts Visakhapatnam phone, t-shirt printing near me, KPJ Garments address, Vizag garments shop, bulk order enquiry"
+      />
       {/* Hero */}
       <Box sx={{ py: { xs: 5, md: 8 }, background: "linear-gradient(135deg, #1E3A5F, #122a4a)", textAlign: "center" }}>
         <Container maxWidth="md">

@@ -1,32 +1,56 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   Box, Typography, Button, Paper, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Dialog, DialogTitle, DialogContent, DialogActions,
   TextField, MenuItem, IconButton, Stack, Chip, Switch, FormControlLabel,
-  useMediaQuery, useTheme,
+  useMediaQuery, useTheme, CircularProgress,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import FilterListIcon from "@mui/icons-material/FilterList";
 import * as api from "../db/api";
+import { useToast } from "./ToastContext";
+import Pagination from "./Pagination";
 
 const emptyForm = { type: "bank", label: "", bank_name: "", bank_account: "", bank_ifsc: "", bank_branch: "", upi_id: "", is_default: false };
 
 const PaymentMethods = () => {
-  const [items, setItems] = useState([]);
+  const [rows, setRows] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [editId, setEditId] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [filterSearch, setFilterSearch] = useState("");
+  const [filterType, setFilterType] = useState("");
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const toast = useToast();
 
-  const load = () => api.getPaymentMethods().then(setItems).catch(() => {});
-  useEffect(() => { load(); }, []);
+  const load = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await api.getPaymentMethods({ page, limit, search: filterSearch || undefined, type: filterType || undefined });
+      setRows(res.rows); setTotal(res.total);
+    } catch (err) { toast(err.message); }
+    finally { setLoading(false); }
+  }, [page, limit, filterSearch, filterType]);
+  useEffect(() => { load(); }, [load]);
 
   const handleSave = async () => {
-    if (editId) await api.updatePaymentMethod(editId, form);
-    else await api.createPaymentMethod(form);
-    setOpen(false); setForm(emptyForm); setEditId(null); load();
+    try {
+      setSaving(true);
+      if (editId) await api.updatePaymentMethod(editId, form);
+      else await api.createPaymentMethod(form);
+      setOpen(false); setForm(emptyForm); setEditId(null);
+      toast("Payment method saved", "success"); load();
+    } catch (err) { toast(err.message); }
+    finally { setSaving(false); }
   };
 
   const handleEdit = (p) => {
@@ -38,29 +62,55 @@ const PaymentMethods = () => {
     });
     setEditId(p.id); setOpen(true);
   };
-  const handleDelete = async (id) => { await api.deletePaymentMethod(id); load(); };
+  const handleDelete = async (id) => {
+    try { await api.deletePaymentMethod(id); toast("Payment method deleted", "success"); load(); }
+    catch (err) { toast(err.message); }
+  };
+  const clearFilters = () => { setFilterSearch(""); setFilterType(""); setPage(1); };
 
   return (
     <Box>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }} flexWrap="wrap" gap={1}>
         <Typography variant="h5" sx={{ fontWeight: 700, color: "#1E3A5F", fontSize: { xs: 16, md: 24 } }}>
           Payments
         </Typography>
-        <Button variant="contained" startIcon={<AddIcon />} size={isMobile ? "small" : "medium"}
-          onClick={() => { setForm(emptyForm); setEditId(null); setOpen(true); }}>
-          Add
-        </Button>
+        <Stack direction="row" alignItems="center" spacing={1}>
+          <IconButton size="small" onClick={() => setShowFilters((v) => !v)} color={showFilters ? "primary" : "default"}>
+            <FilterListIcon fontSize="small" />
+          </IconButton>
+          <Button variant="contained" startIcon={<AddIcon />} size={isMobile ? "small" : "medium"}
+            onClick={() => { setForm(emptyForm); setEditId(null); setOpen(true); }}>
+            Add
+          </Button>
+        </Stack>
       </Stack>
 
-      {items.length === 0 && (
-        <Paper sx={{ p: 4, textAlign: "center", borderRadius: 2 }}>
-          <Typography sx={{ color: "#5A6F8A" }}>No payment methods added</Typography>
+      {showFilters && (
+        <Paper sx={{ p: 2, mb: 2, borderRadius: 2 }}>
+          <Stack direction={{ xs: "column", md: "row" }} spacing={1.5} alignItems={{ md: "center" }}>
+            <TextField label="Search" size="small" value={filterSearch} onChange={(e) => setFilterSearch(e.target.value)} onKeyDown={(e) => e.key === "Enter" && setPage(1)} sx={{ minWidth: 180 }} />
+            <TextField label="Type" select size="small" value={filterType} onChange={(e) => { setFilterType(e.target.value); setPage(1); }} sx={{ minWidth: 130 }}>
+              <MenuItem value="">All</MenuItem>
+              <MenuItem value="bank">Bank</MenuItem>
+              <MenuItem value="upi">UPI</MenuItem>
+            </TextField>
+            <Button size="small" variant="outlined" onClick={() => setPage(1)}>Search</Button>
+            <Button size="small" onClick={clearFilters}>Clear</Button>
+          </Stack>
         </Paper>
       )}
 
-      {isMobile && items.length > 0 && (
+      {loading && <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}><CircularProgress /></Box>}
+
+      {!loading && rows.length === 0 && (
+        <Paper sx={{ p: 4, textAlign: "center", borderRadius: 2 }}>
+          <Typography sx={{ color: "#5A6F8A" }}>No payment methods found</Typography>
+        </Paper>
+      )}
+
+      {!loading && isMobile && rows.length > 0 && (
         <Stack spacing={1.5}>
-          {items.map((p) => (
+          {rows.map((p) => (
             <Paper key={p.id} sx={{ p: 2, borderRadius: 2 }}>
               <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
                 <Box sx={{ minWidth: 0, flex: 1 }}>
@@ -86,7 +136,7 @@ const PaymentMethods = () => {
         </Stack>
       )}
 
-      {!isMobile && items.length > 0 && (
+      {!loading && !isMobile && rows.length > 0 && (
         <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
           <Table size="small">
             <TableHead>
@@ -99,7 +149,7 @@ const PaymentMethods = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {items.map((p) => (
+              {rows.map((p) => (
                 <TableRow key={p.id} hover>
                   <TableCell sx={{ fontWeight: 600 }}>{p.label || p.bank_name || p.upi_id}</TableCell>
                   <TableCell>
@@ -120,6 +170,8 @@ const PaymentMethods = () => {
           </Table>
         </TableContainer>
       )}
+
+      {!loading && <Pagination page={page} total={total} limit={limit} onPageChange={setPage} onLimitChange={(l) => { setLimit(l); setPage(1); }} />}
 
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth fullScreen={isMobile}>
         <DialogTitle sx={{ fontSize: { xs: 18, md: 20 } }}>
@@ -157,7 +209,7 @@ const PaymentMethods = () => {
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button onClick={() => setOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleSave}>{editId ? "Update" : "Add"}</Button>
+          <Button variant="contained" onClick={handleSave} disabled={saving}>{saving ? "Saving…" : editId ? "Update" : "Add"}</Button>
         </DialogActions>
       </Dialog>
     </Box>

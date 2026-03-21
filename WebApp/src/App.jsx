@@ -1,4 +1,5 @@
 import { useLocation, Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
 import { CssBaseline, Box } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
 import { AnimatePresence, motion } from "framer-motion";
@@ -8,14 +9,20 @@ import Footer from "./components/Footer";
 import AppRoutes from "./Routes";
 import AdminApp from "./admin/AdminApp";
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => { window.scrollTo({ top: 0, behavior: "instant" }); }, [pathname]);
+  return null;
+}
+
 function App() {
   const location = useLocation();
-  const isAdmin = location.pathname.startsWith("/kpj-garments/admin");
+  const isAdmin = location.pathname.startsWith("/admin");
 
   if (isAdmin) {
     return (
       <Routes>
-        <Route path="/kpj-garments/admin/*" element={<AdminApp />} />
+        <Route path="/admin/*" element={<AdminApp />} />
       </Routes>
     );
   }
@@ -23,6 +30,7 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
+      <ScrollToTop />
       <Box sx={{ minHeight: "100vh", display: "flex", flexDirection: "column", bgcolor: "#fff" }}>
         <Header />
         <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>

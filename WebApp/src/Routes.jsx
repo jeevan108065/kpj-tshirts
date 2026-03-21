@@ -7,11 +7,11 @@ import Quote from "./pages/Quote";
 
 const AppRoutes = () => (
   <Routes>
-    <Route path="/kpj-garments/" element={<Home />} />
-    <Route path="/kpj-garments/products/:categoryId" element={<Products />} />
-    <Route path="/kpj-garments/about" element={<About />} />
-    <Route path="/kpj-garments/contact" element={<Contact />} />
-    <Route path="/kpj-garments/quote" element={<Quote />} />
+    <Route path="/" element={<Home />} />
+    <Route path="/products/:categoryId" element={<Products />} />
+    <Route path="/about" element={<About />} />
+    <Route path="/contact" element={<Contact />} />
+    <Route path="/quote" element={<Quote />} />
     <Route path="*" element={<Home />} />
   </Routes>
 );
