@@ -289,20 +289,20 @@ app.get("/api/leads", adminAuth, async (req, res) => {
 });
 app.post("/api/leads", adminAuth, async (req, res) => {
   try {
-    const { name, phone, email, product, quantity, status, source } = req.body;
+    const { name, phone, email, product, quantity, status, source, latitude, longitude, comments } = req.body;
     const { rows } = await pool.query(
-      "INSERT INTO leads (name,phone,email,product,quantity,status,source) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *",
-      [sanitize(name), sanitize(phone), sanitize(email), sanitize(product), sanitize(quantity), status || "new", source || "website"]
+      "INSERT INTO leads (name,phone,email,product,quantity,status,source,latitude,longitude,comments) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *",
+      [sanitize(name), sanitize(phone), sanitize(email), sanitize(product), sanitize(quantity), status || "new", source || "website", latitude || null, longitude || null, sanitize(comments)]
     );
     res.json(rows[0]);
   } catch (err) { console.error("POST /api/leads error:", err.message); res.status(500).json({ error: "Failed to create lead" }); }
 });
 app.put("/api/leads/:id", adminAuth, async (req, res) => {
   try {
-    const { name, phone, email, product, quantity, status, source } = req.body;
+    const { name, phone, email, product, quantity, status, source, latitude, longitude, comments } = req.body;
     const { rows } = await pool.query(
-      "UPDATE leads SET name=$1,phone=$2,email=$3,product=$4,quantity=$5,status=$6,source=$7,updated_at=NOW() WHERE id=$8 RETURNING *",
-      [sanitize(name), sanitize(phone), sanitize(email), sanitize(product), sanitize(quantity), status, source, req.params.id]
+      "UPDATE leads SET name=$1,phone=$2,email=$3,product=$4,quantity=$5,status=$6,source=$7,latitude=$8,longitude=$9,comments=$10,updated_at=NOW() WHERE id=$11 RETURNING *",
+      [sanitize(name), sanitize(phone), sanitize(email), sanitize(product), sanitize(quantity), status, source, latitude || null, longitude || null, sanitize(comments), req.params.id]
     );
     res.json(rows[0]);
   } catch (err) { console.error("PUT /api/leads error:", err.message); res.status(500).json({ error: "Failed to update lead" }); }
