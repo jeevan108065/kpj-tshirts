@@ -36,7 +36,7 @@ const PaymentMethods = () => {
     try {
       setLoading(true);
       const res = await api.getPaymentMethods({ page, limit, search: filterSearch || undefined, type: filterType || undefined });
-      setRows(res.rows); setTotal(res.total);
+      setRows(res.rows || []); setTotal(res.total || 0);
     } catch (err) { toast(err.message); }
     finally { setLoading(false); }
   }, [page, limit, filterSearch, filterType]);

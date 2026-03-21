@@ -42,7 +42,7 @@ const Leads = () => {
     try {
       setLoading(true);
       const res = await api.getLeads({ page, limit, search: filterSearch || undefined, status: filterStatus || undefined });
-      setRows(res.rows); setTotal(res.total);
+      setRows(res.rows || []); setTotal(res.total || 0);
     } catch (err) { toast(err.message); }
     finally { setLoading(false); }
   }, [page, limit, filterSearch, filterStatus]);

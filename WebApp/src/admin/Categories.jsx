@@ -36,7 +36,7 @@ const Categories = () => {
     try {
       setLoading(true);
       const res = await api.getCategories({ page, limit, search: filterSearch || undefined });
-      setRows(res.rows); setTotal(res.total);
+      setRows(res.rows || []); setTotal(res.total || 0);
     } catch (err) { toast(err.message); }
     finally { setLoading(false); }
   }, [page, limit, filterSearch]);

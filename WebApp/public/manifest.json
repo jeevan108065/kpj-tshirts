@@ -4,7 +4,7 @@
   "description": "Custom printed t-shirts, school & college uniforms, sublimation & DTF printing in Visakhapatnam",
   "icons": [
     {
-      "src": "assets/kpjLogo.svg",
+      "src": "/kpjLogo.svg",
       "type": "image/svg+xml",
       "sizes": "any"
     }

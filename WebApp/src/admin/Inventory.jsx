@@ -40,7 +40,7 @@ const Inventory = () => {
         api.getProducts({ page, limit, search: filterSearch || undefined, category: filterCategory || undefined }),
         api.getCategories({ limit: 100 }),
       ]);
-      setRows(res.rows); setTotal(res.total); setCategories(cats.rows || cats);
+      setRows(res.rows || []); setTotal(res.total || 0); setCategories(cats.rows || cats);
     } catch (err) { toast(err.message); }
     finally { setLoading(false); }
   }, [page, limit, filterSearch, filterCategory]);
