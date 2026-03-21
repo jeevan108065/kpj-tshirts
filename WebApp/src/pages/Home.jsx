@@ -18,6 +18,7 @@ import FormatQuoteIcon from "@mui/icons-material/FormatQuote";
 import SendIcon from "@mui/icons-material/Send";
 import { getMetrics, fetchMetrics } from "../db/metricsService";
 import { getCategories, getProducts, getReviews, submitReview } from "../db/api";
+import SEO from "../components/SEO";
 
 // Local images
 import heroImg from "../assets/hero-tshirts.jpg";
@@ -236,6 +237,12 @@ const Home = () => {
 
   return (
     <Box sx={{ width: "100%", overflow: "hidden" }}>
+      <SEO
+        title="Custom Printed T-Shirts, Uniforms & Garments"
+        description="KPJ Garments Visakhapatnam — custom printed t-shirts, school & college uniforms, corporate workwear, sublimation printing, DTF printing, tracks & shorts. Bulk orders, fast delivery, no minimums."
+        path="/"
+        keywords="KPJ, KPJ T-Shirts, custom t-shirts Visakhapatnam, uniforms in Visakhapatnam, school uniforms Vizag, college uniforms, sublimation printing, DTF printing, screen printing, bulk t-shirts, promotional t-shirts, MBA batch tees, tracks shorts, corporate uniforms, custom printed garments Visakhapatnam"
+      />
 
       {/* ═══ HERO SECTION ═══ */}
       <Box sx={{

@@ -4,6 +4,7 @@ import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import FormatQuoteIcon from "@mui/icons-material/FormatQuote";
 import QuoteForm from "../components/QuoteForm";
+import SEO from "../components/SEO";
 
 const fadeUp = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 
@@ -13,6 +14,12 @@ const Quote = () => {
 
   return (
     <Box sx={{ width: "100%" }}>
+      <SEO
+        title="Get a Free Quote — Custom T-Shirts & Uniforms"
+        description="Request a free quote for custom t-shirts, uniforms, sublimation printing, DTF printing from KPJ Garments Visakhapatnam. No minimums, fast delivery."
+        path="/quote"
+        keywords="KPJ quote, custom t-shirt quote Visakhapatnam, bulk order quote, uniform quote Vizag, printing quote"
+      />
       <Box sx={{ py: { xs: 5, md: 8 }, background: "linear-gradient(135deg, #1E3A5F, #122a4a)", textAlign: "center" }}>
         <Container maxWidth="md">
           <motion.div initial="hidden" animate="visible" variants={fadeUp}>

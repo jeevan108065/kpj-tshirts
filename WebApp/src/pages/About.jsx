@@ -6,6 +6,7 @@ import PaletteIcon from "@mui/icons-material/Palette";
 import SpeedIcon from "@mui/icons-material/Speed";
 import VerifiedIcon from "@mui/icons-material/Verified";
 import kpjLogo from "../assets/kpjLogo.svg";
+import SEO from "../components/SEO";
 
 const fadeUp = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 
@@ -18,6 +19,12 @@ const services = [
 
 const About = () => (
   <Box sx={{ width: "100%" }}>
+    <SEO
+      title="About Us — Sublimation, DTF & Screen Printing Experts"
+      description="KPJ Garments is Visakhapatnam's trusted custom apparel brand. Sublimation printing, DTF printing, screen printing, embroidery — from single pieces to bulk orders."
+      path="/about"
+      keywords="KPJ about, sublimation printing Visakhapatnam, DTF printing Vizag, screen printing, embroidery, custom apparel Visakhapatnam, t-shirt printing near me"
+    />
     {/* Hero */}
     <Box sx={{
       py: { xs: 5, md: 10 }, background: "linear-gradient(135deg, #1E3A5F 0%, #122a4a 100%)",
