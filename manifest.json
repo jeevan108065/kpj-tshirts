@@ -1,6 +1,7 @@
 {
   "short_name": "KPJ",
-  "name": "KPJ T-Shirts",
+  "name": "KPJ Garments - Custom T-Shirts & Uniforms Visakhapatnam",
+  "description": "Custom printed t-shirts, school & college uniforms, sublimation & DTF printing in Visakhapatnam",
   "icons": [
     {
       "src": "assets/kpjLogo.svg",
@@ -8,8 +9,9 @@
       "sizes": "any"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "theme_color": "#1E3A5F",
+  "background_color": "#ffffff",
+  "categories": ["business", "shopping"]
 }
