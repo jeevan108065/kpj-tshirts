@@ -3,13 +3,14 @@ import cors from "cors";
 import crypto from "crypto";
 import dotenv from "dotenv";
 import pool from "./db/pool.js";
+import { setupSwagger } from "./swagger.js";
 
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // ─── Security: CORS whitelist ───
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "http://localhost:5173,http://localhost:3000,https://kpjtshirts.com,https://www.kpjtshirts.com").split(",").map(s => s.trim());
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "http://localhost:5173,http://localhost:3000,https://kpj.app,https://garments.kpj.app").split(",").map(s => s.trim());
 app.use(cors({
   origin(origin, cb) {
     // Allow requests with no origin (mobile apps, curl, server-to-server)
@@ -119,6 +120,9 @@ function paginated(baseQuery, { req, allowedFilters = {}, defaultOrder = "id DES
 }
 
 
+
+// ─── Swagger UI ───
+setupSwagger(app);
 
 // ─── PUBLIC: Metrics ───
 app.get("/api/metrics", async (req, res) => {
