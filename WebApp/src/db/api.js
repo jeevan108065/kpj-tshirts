@@ -4,7 +4,7 @@ function getToken() {
   return sessionStorage.getItem("kpj_admin_token") || "";
 }
 
-async function request(path, options = {}) {
+async function request(path, options = {}, _retry = 0) {
   let res;
   try {
     res = await fetch(`${API_BASE}${path}`, {
@@ -16,6 +16,11 @@ async function request(path, options = {}) {
       },
     });
   } catch (networkErr) {
+    // Render free tier cold start — retry once after a short delay
+    if (_retry < 2) {
+      await new Promise((r) => setTimeout(r, 3000));
+      return request(path, options, _retry + 1);
+    }
     throw new Error("Cannot connect to server. Is the API running on " + API_BASE + "?");
   }
   if (res.status === 401) {
