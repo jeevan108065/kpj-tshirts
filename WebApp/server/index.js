@@ -10,11 +10,11 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // ─── Security: CORS whitelist ───
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "http://localhost:5173,http://localhost:3000,https://kpj.app,https://garments.kpj.app").split(",").map(s => s.trim());
+const ALLOWED_ORIGINS = new Set((process.env.ALLOWED_ORIGINS || "http://localhost:5173,http://localhost:3000,https://kpj.app,https://garments.kpj.app").split(",").map(s => s.trim()));
 app.use(cors({
   origin(origin, cb) {
     // Allow requests with no origin (mobile apps, curl, server-to-server)
-    if (!origin || ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
+    if (!origin || ALLOWED_ORIGINS.has(origin)) return cb(null, true);
     cb(null, false);
   },
   credentials: true,
