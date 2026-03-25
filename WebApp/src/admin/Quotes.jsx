@@ -8,6 +8,7 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import PrintIcon from "@mui/icons-material/Print";
+import DownloadIcon from "@mui/icons-material/Download";
 import DeleteIcon from "@mui/icons-material/Delete";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
@@ -431,7 +432,28 @@ const Quotes = () => {
         <DialogContent sx={{ p: 0 }}>{viewQuote && <QuotePrintView quote={viewQuote} paymentMethods={paymentMethods} />}</DialogContent>
         <DialogActions className="no-print" sx={{ px: 3, pb: 2 }}>
           <Button onClick={() => setViewOpen(false)}>Close</Button>
-          <Button variant="contained" startIcon={<PrintIcon />} onClick={() => globalThis.print()}>Print</Button>
+          <Button
+            variant="contained"
+            startIcon={isMobile ? <DownloadIcon /> : <PrintIcon />}
+            onClick={async () => {
+              if (isMobile) {
+                const el = document.querySelector(".print-area");
+                if (!el) return;
+                const html2pdf = (await import("html2pdf.js")).default;
+                html2pdf().set({
+                  margin: [5, 5, 5, 5],
+                  filename: `${viewQuote?.quote_number || "quote"}.pdf`,
+                  image: { type: "jpeg", quality: 0.98 },
+                  html2canvas: { scale: 2, useCORS: true },
+                  jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+                }).from(el).save();
+              } else {
+                globalThis.print();
+              }
+            }}
+          >
+            {isMobile ? "Download PDF" : "Print"}
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>
