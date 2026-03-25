@@ -75,13 +75,20 @@ export const createLead = (data) => request("/api/leads", { method: "POST", body
 export const updateLead = (id, data) => request(`/api/leads/${id}`, { method: "PUT", body: JSON.stringify(data) });
 export const deleteLead = (id) => request(`/api/leads/${id}`, { method: "DELETE" });
 
-// Quotes / Invoices
+// Quotes / Invoices (tax invoices)
 export const getQuotes = (params) => request(`/api/quotes${qs(params)}`);
-export const getNextQuoteNumber = (type) => request(`/api/quotes/next-number?type=${type || "tax_invoice"}`);
+export const getNextQuoteNumber = (type) => request(`/api/quotes/next-number`);
 export const createQuote = (data) => request("/api/quotes", { method: "POST", body: JSON.stringify(data) });
 export const updateQuote = (id, data) => request(`/api/quotes/${id}`, { method: "PUT", body: JSON.stringify(data) });
-export const convertQuote = (id, data) => request(`/api/quotes/${id}/convert`, { method: "POST", body: JSON.stringify(data) });
 export const deleteQuote = (id) => request(`/api/quotes/${id}`, { method: "DELETE" });
+
+// Sample Quotes (separate table)
+export const getSampleQuotes = (params) => request(`/api/sample-quotes${qs(params)}`);
+export const getNextSampleQuoteNumber = () => request(`/api/sample-quotes/next-number`);
+export const createSampleQuote = (data) => request("/api/sample-quotes", { method: "POST", body: JSON.stringify(data) });
+export const updateSampleQuote = (id, data) => request(`/api/sample-quotes/${id}`, { method: "PUT", body: JSON.stringify(data) });
+export const convertSampleQuote = (id) => request(`/api/sample-quotes/${id}/convert`, { method: "POST", body: JSON.stringify({}) });
+export const deleteSampleQuote = (id) => request(`/api/sample-quotes/${id}`, { method: "DELETE" });
 
 // Orders
 export const getOrders = (params) => request(`/api/orders${qs(params)}`);
