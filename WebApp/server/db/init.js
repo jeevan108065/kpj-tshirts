@@ -54,6 +54,7 @@ CREATE TABLE IF NOT EXISTS invoice_counter (
   next_val INTEGER NOT NULL DEFAULT 1
 );
 INSERT INTO invoice_counter (id, next_val) VALUES ('tax_invoice', 1) ON CONFLICT (id) DO NOTHING;
+INSERT INTO invoice_counter (id, next_val) VALUES ('sample_quotation', 1) ON CONFLICT (id) DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS quotes (
   id SERIAL PRIMARY KEY,
@@ -78,6 +79,7 @@ CREATE TABLE IF NOT EXISTS quotes (
   discount NUMERIC(12,2) DEFAULT 0,
   grand_total NUMERIC(12,2) DEFAULT 0,
   total_qty INTEGER DEFAULT 0,
+  comments TEXT DEFAULT '',
   status VARCHAR(20) DEFAULT 'draft',
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -161,6 +163,7 @@ CREATE TABLE IF NOT EXISTS invoice_counter (
   next_val INTEGER NOT NULL DEFAULT 1
 );
 INSERT INTO invoice_counter (id, next_val) VALUES ('tax_invoice', 1) ON CONFLICT (id) DO NOTHING;
+INSERT INTO invoice_counter (id, next_val) VALUES ('sample_quotation', 1) ON CONFLICT (id) DO NOTHING;
 CREATE TABLE IF NOT EXISTS reviews (
   id SERIAL PRIMARY KEY,
   name VARCHAR(200) NOT NULL,
@@ -178,6 +181,7 @@ UPDATE quotes SET billing_address = client_address WHERE billing_address IS NULL
 UPDATE quotes SET billing_gstin = client_gstin WHERE billing_gstin IS NULL AND client_gstin IS NOT NULL;
 UPDATE quotes SET billing_phone = client_phone WHERE billing_phone IS NULL AND client_phone IS NOT NULL;
 UPDATE invoice_counter SET next_val = GREATEST(next_val, COALESCE((SELECT COUNT(*)+1 FROM quotes WHERE quote_type='tax_invoice'), 1)) WHERE id='tax_invoice';
+UPDATE invoice_counter SET next_val = GREATEST(next_val, COALESCE((SELECT COUNT(*)+1 FROM quotes WHERE quote_type='sample_quotation'), 1)) WHERE id='sample_quotation';
 `;
 
 // DO $$ blocks must use regular strings to avoid JS template literal issues with $
@@ -193,6 +197,7 @@ const ADD_COLUMN_QUERIES = [
   'DO $$ BEGIN ALTER TABLE quotes ADD COLUMN shipping_address TEXT; EXCEPTION WHEN duplicate_column THEN NULL; END $$;',
   'DO $$ BEGIN ALTER TABLE quotes ADD COLUMN shipping_phone VARCHAR(20); EXCEPTION WHEN duplicate_column THEN NULL; END $$;',
   'DO $$ BEGIN ALTER TABLE quotes ADD COLUMN payment_method_id INTEGER REFERENCES payment_methods(id) ON DELETE SET NULL; EXCEPTION WHEN duplicate_column THEN NULL; END $$;',
+  "DO $$ BEGIN ALTER TABLE quotes ADD COLUMN comments TEXT DEFAULT ''; EXCEPTION WHEN duplicate_column THEN NULL; END $$;",
   'DO $$ BEGIN ALTER TABLE leads ADD COLUMN latitude DOUBLE PRECISION; EXCEPTION WHEN duplicate_column THEN NULL; END $$;',
   'DO $$ BEGIN ALTER TABLE leads ADD COLUMN longitude DOUBLE PRECISION; EXCEPTION WHEN duplicate_column THEN NULL; END $$;',
   'DO $$ BEGIN ALTER TABLE leads ADD COLUMN comments TEXT; EXCEPTION WHEN duplicate_column THEN NULL; END $$;',

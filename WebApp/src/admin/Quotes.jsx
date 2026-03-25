@@ -31,9 +31,8 @@ const emptyForm = {
   quote_type: "tax_invoice", billing_name: "", billing_address: "", billing_gstin: "",
   billing_phone: "", billing_email: "", shipping_name: "", shipping_address: "", shipping_phone: "",
   same_as_billing: true, items: [{ ...emptyItem }], payment_method_id: "",
-  cgst_rate: 0, sgst_rate: 0, discount: 0, status: "draft",
+  cgst_rate: 0, sgst_rate: 0, discount: 0, comments: "", status: "draft",
 };
-const tabTypes = ["tax_invoice", "sample_quotation"];
 
 const Quotes = () => {
   const [rows, setRows] = useState([]);
@@ -60,7 +59,10 @@ const Quotes = () => {
   const loadQuotes = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await api.getQuotes({ page, limit, search: filterSearch || undefined, status: filterStatus || undefined, type: tabTypes[tab] });
+      const isSample = tab === 1;
+      const res = isSample
+        ? await api.getSampleQuotes({ page, limit, search: filterSearch || undefined, status: filterStatus || undefined })
+        : await api.getQuotes({ page, limit, search: filterSearch || undefined, status: filterStatus || undefined });
       setRows(res.rows || []); setTotal(res.total || 0);
     } catch (err) { toast(err.message); }
     finally { setLoading(false); }
@@ -81,7 +83,8 @@ const Quotes = () => {
   const openNew = async (type = "tax_invoice") => {
     setEditId(null);
     try {
-      const { quoteNumber } = await api.getNextQuoteNumber(type);
+      const isSample = type === "sample_quotation";
+      const { quoteNumber } = isSample ? await api.getNextSampleQuoteNumber() : await api.getNextQuoteNumber();
       setForm({ ...emptyForm, quote_type: type, quote_number: quoteNumber, items: [{ ...emptyItem }] });
       setOpen(true);
     } catch (err) {
@@ -97,7 +100,7 @@ const Quotes = () => {
     const sameShipping = (!q.shipping_name || q.shipping_name === q.billing_name) &&
       (!q.shipping_address || q.shipping_address === q.billing_address);
     setForm({
-      quote_type: q.quote_type || "tax_invoice", quote_number: q.quote_number,
+      quote_type: q.quote_type || (tab === 1 ? "sample_quotation" : "tax_invoice"), quote_number: q.quote_number,
       billing_name: q.billing_name || "", billing_address: q.billing_address || "",
       billing_gstin: q.billing_gstin || "", billing_phone: q.billing_phone || "",
       billing_email: q.billing_email || "",
@@ -106,7 +109,7 @@ const Quotes = () => {
       items: items.length ? items : [{ ...emptyItem }],
       payment_method_id: q.payment_method_id || "",
       cgst_rate: q.cgst_rate || 0, sgst_rate: q.sgst_rate || 0,
-      discount: q.discount || 0, status: q.status || "draft",
+      discount: q.discount || 0, comments: q.comments || "", status: q.status || "draft",
     });
     setEditId(q.id);
     setOpen(true);
@@ -152,22 +155,30 @@ const Quotes = () => {
         cgst_amount: cgstAmt, sgst_amount: sgstAmt,
         discount: Number.parseFloat(form.discount) || 0, grand_total: grandTotal,
         payment_method_id: form.payment_method_id || null,
+        comments: form.comments || "",
       };
       if (form.same_as_billing) {
         data.shipping_name = data.billing_name;
         data.shipping_address = data.billing_address;
         data.shipping_phone = data.billing_phone;
       }
-      if (editId) await api.updateQuote(editId, data);
-      else await api.createQuote(data);
+      const isSample = form.quote_type === "sample_quotation";
+      if (editId) {
+        isSample ? await api.updateSampleQuote(editId, data) : await api.updateQuote(editId, data);
+      } else {
+        isSample ? await api.createSampleQuote(data) : await api.createQuote(data);
+      }
       setOpen(false); setEditId(null);
       toast("Saved", "success"); loadQuotes();
     } catch (err) { toast(err.message); }
     finally { setSaving(false); }
   };
 
-  const handleDelete = async (id) => {
-    try { await api.deleteQuote(id); toast("Deleted", "success"); loadQuotes(); }
+  const handleDelete = async (id, isSample) => {
+    try {
+      isSample ? await api.deleteSampleQuote(id) : await api.deleteQuote(id);
+      toast("Deleted", "success"); loadQuotes();
+    }
     catch (err) { toast(err.message); }
   };
   const handleView = (q) => { setViewQuote(q); setViewOpen(true); };
@@ -176,15 +187,7 @@ const Quotes = () => {
   const handleConvert = async (q) => {
     if (!globalThis.confirm("Convert this sample quotation to a Tax Invoice?")) return;
     try {
-      await api.convertQuote(q.id, {
-        billing_name: q.billing_name, billing_address: q.billing_address,
-        billing_gstin: q.billing_gstin, billing_phone: q.billing_phone, billing_email: q.billing_email,
-        shipping_name: q.shipping_name, shipping_address: q.shipping_address, shipping_phone: q.shipping_phone,
-        items: q.items, payment_method_id: q.payment_method_id,
-        subtotal: q.subtotal, cgst_rate: q.cgst_rate, sgst_rate: q.sgst_rate,
-        cgst_amount: q.cgst_amount, sgst_amount: q.sgst_amount,
-        discount: q.discount, grand_total: q.grand_total, total_qty: q.total_qty, status: "draft",
-      });
+      await api.convertSampleQuote(q.id);
       toast("Converted to Tax Invoice", "success"); loadQuotes();
     } catch (err) { toast(err.message); }
   };
@@ -225,10 +228,10 @@ const Quotes = () => {
             <IconButton size="small" onClick={() => handleView(q)}><VisibilityIcon fontSize="small" /></IconButton>
             <IconButton size="small" onClick={() => handleEdit(q)}><EditIcon fontSize="small" /></IconButton>
             <IconButton size="small" onClick={() => handlePrint(q)}><PrintIcon fontSize="small" /></IconButton>
-            {q.quote_type !== "tax_invoice" && (
+            {tab === 1 && (
               <IconButton size="small" color="primary" onClick={() => handleConvert(q)}><ReceiptLongIcon fontSize="small" /></IconButton>
             )}
-            <IconButton size="small" color="error" onClick={() => handleDelete(q.id)}><DeleteIcon fontSize="small" /></IconButton>
+            <IconButton size="small" color="error" onClick={() => handleDelete(q.id, tab === 1)}><DeleteIcon fontSize="small" /></IconButton>
           </Stack>
         </Paper>
       ))}
@@ -263,10 +266,10 @@ const Quotes = () => {
                 <IconButton size="small" onClick={() => handleView(q)} title="View"><VisibilityIcon fontSize="small" /></IconButton>
                 <IconButton size="small" onClick={() => handleEdit(q)} title="Edit"><EditIcon fontSize="small" /></IconButton>
                 <IconButton size="small" onClick={() => handlePrint(q)} title="Print"><PrintIcon fontSize="small" /></IconButton>
-                {q.quote_type !== "tax_invoice" && (
+                {tab === 1 && (
                   <IconButton size="small" color="primary" onClick={() => handleConvert(q)} title="Convert"><ReceiptLongIcon fontSize="small" /></IconButton>
                 )}
-                <IconButton size="small" color="error" onClick={() => handleDelete(q.id)} title="Delete"><DeleteIcon fontSize="small" /></IconButton>
+                <IconButton size="small" color="error" onClick={() => handleDelete(q.id, tab === 1)} title="Delete"><DeleteIcon fontSize="small" /></IconButton>
               </TableCell>
             </TableRow>
           ))}
@@ -352,21 +355,21 @@ const Quotes = () => {
             {form.items.map((item, idx) => (
               <Paper key={`item-${idx}`} variant="outlined" sx={{ p: 1.5, borderRadius: 2 }}>
                 <Grid container spacing={1} alignItems="center">
-                  <Grid size={{ xs: 12, sm: 3 }}>
+                  <Grid size={{ xs: 12, sm: 4 }}>
                     <TextField label="Product" select fullWidth size="small" value="" onChange={(e) => selectProduct(idx, e.target.value)}>
                       <MenuItem value="">— Select —</MenuItem>
                       {products.map((p) => <MenuItem key={p.id} value={p.id}>{p.name}</MenuItem>)}
                     </TextField>
                   </Grid>
-                  <Grid size={{ xs: 12, sm: 3 }}><TextField label="Description" fullWidth size="small" value={item.description} onChange={(e) => updateItem(idx, "description", e.target.value)} /></Grid>
-                  <Grid size={{ xs: 4, sm: 1 }}><TextField label="HSN" fullWidth size="small" value={item.hsnCode} onChange={(e) => updateItem(idx, "hsnCode", e.target.value)} /></Grid>
-                  <Grid size={{ xs: 4, sm: 1 }}><TextField label="Qty" fullWidth size="small" type="number" value={item.qty} onChange={(e) => updateItem(idx, "qty", e.target.value)} /></Grid>
-                  <Grid size={{ xs: 4, sm: 1 }}><TextField label="Unit" fullWidth size="small" value={item.unit} onChange={(e) => updateItem(idx, "unit", e.target.value)} /></Grid>
-                  <Grid size={{ xs: 5, sm: 1.5 }}><TextField label="Price" fullWidth size="small" type="number" value={item.price} onChange={(e) => updateItem(idx, "price", e.target.value)} /></Grid>
-                  <Grid size={{ xs: 5, sm: 1 }}>
+                  <Grid size={{ xs: 12, sm: 8 }}><TextField label="Description" fullWidth size="small" multiline minRows={2} maxRows={4} value={item.description} onChange={(e) => updateItem(idx, "description", e.target.value)} /></Grid>
+                  <Grid size={{ xs: 4, sm: 2 }}><TextField label="HSN" fullWidth size="small" value={item.hsnCode} onChange={(e) => updateItem(idx, "hsnCode", e.target.value)} /></Grid>
+                  <Grid size={{ xs: 4, sm: 2 }}><TextField label="Qty" fullWidth size="small" type="number" value={item.qty} onChange={(e) => updateItem(idx, "qty", e.target.value)} sx={{ minWidth: 80 }} /></Grid>
+                  <Grid size={{ xs: 4, sm: 1.5 }}><TextField label="Unit" fullWidth size="small" value={item.unit} onChange={(e) => updateItem(idx, "unit", e.target.value)} /></Grid>
+                  <Grid size={{ xs: 5, sm: 2.5 }}><TextField label="Price" fullWidth size="small" type="number" value={item.price} onChange={(e) => updateItem(idx, "price", e.target.value)} /></Grid>
+                  <Grid size={{ xs: 5, sm: 3 }}>
                     <Typography sx={{ fontWeight: 600, textAlign: "right", fontSize: 14 }}>₹{(item.amount || 0).toLocaleString("en-IN")}</Typography>
                   </Grid>
-                  <Grid size={{ xs: 2, sm: 0.5 }}>
+                  <Grid size={{ xs: 2, sm: 1 }}>
                     {form.items.length > 1 && <IconButton size="small" color="error" onClick={() => removeItem(idx)}><DeleteIcon fontSize="small" /></IconButton>}
                   </Grid>
                 </Grid>
@@ -393,6 +396,9 @@ const Quotes = () => {
                 </Stack>
               </Stack>
             </Paper>
+            <Divider />
+            <Typography variant="subtitle2" sx={{ color: "#3393E0" }}>Comments / Notes</Typography>
+            <TextField label="Comments (will appear at the bottom of the quotation)" fullWidth size="small" multiline minRows={2} maxRows={4} value={form.comments} onChange={(e) => setForm({ ...form, comments: e.target.value })} />
             <Divider />
             <Typography variant="subtitle2" sx={{ color: "#3393E0" }}>Payment Method & Status</Typography>
             <Grid container spacing={1.5}>
@@ -435,7 +441,7 @@ const Quotes = () => {
 
 function QuotePrintView({ quote: q, paymentMethods }) {
   const items = Array.isArray(q.items) ? q.items : [];
-  const isTax = q.quote_type === "tax_invoice";
+  const isTax = q.quote_type === "tax_invoice" || !q.quote_number?.startsWith("KPJ-SQ");
   const title = isTax ? "TAX INVOICE" : "SAMPLE QUOTATION";
 
   const pm = q.payment_method_id ? paymentMethods.find((p) => p.id === q.payment_method_id) : null;
@@ -573,6 +579,13 @@ function QuotePrintView({ quote: q, paymentMethods }) {
           </>
         )}
         {upiId && <Typography sx={{ fontSize: { xs: 9, md: 11 } }}>UPI: {upiId}</Typography>}
+        {q.comments && (
+          <>
+            <Divider sx={{ borderColor: "#000", my: 1 }} />
+            <Typography sx={{ fontSize: { xs: 9, md: 11 }, fontWeight: 600 }}>Notes / Comments:</Typography>
+            <Typography sx={{ fontSize: { xs: 9, md: 11 }, whiteSpace: "pre-wrap" }}>{q.comments}</Typography>
+          </>
+        )}
         <Divider sx={{ borderColor: "#000", my: 1 }} />
         <Grid container>
           <Grid size={6}>
