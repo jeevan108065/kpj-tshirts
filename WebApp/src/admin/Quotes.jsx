@@ -140,10 +140,11 @@ const Quotes = () => {
   const calcTotals = () => {
     const subtotal = form.items.reduce((s, i) => s + (i.amount || 0), 0);
     const totalQty = form.items.reduce((s, i) => s + (Number.parseFloat(i.qty) || 0), 0);
-    const cgstAmt = subtotal * (Number.parseFloat(form.cgst_rate) || 0) / 100;
-    const sgstAmt = subtotal * (Number.parseFloat(form.sgst_rate) || 0) / 100;
     const disc = Number.parseFloat(form.discount) || 0;
-    return { subtotal, totalQty, cgstAmt, sgstAmt, grandTotal: subtotal + cgstAmt + sgstAmt - disc };
+    const taxable = subtotal - disc;
+    const cgstAmt = taxable * (Number.parseFloat(form.cgst_rate) || 0) / 100;
+    const sgstAmt = taxable * (Number.parseFloat(form.sgst_rate) || 0) / 100;
+    return { subtotal, totalQty, cgstAmt, sgstAmt, grandTotal: taxable + cgstAmt + sgstAmt };
   };
 
   const handleSave = async () => {
@@ -573,22 +574,29 @@ function QuotePrintView({ quote: q, paymentMethods }) {
               </TableRow>
             </TableHead>
             <TableBody>
-              {[...new Set(items.map((i) => i.hsnCode))].map((hsn) => {
-                const hsnItems = items.filter((i) => i.hsnCode === hsn);
-                const taxable = hsnItems.reduce((s, i) => s + (i.amount || 0), 0);
-                const cg = taxable * (Number(q.cgst_rate) || 0) / 100;
-                const sg = taxable * (Number(q.sgst_rate) || 0) / 100;
-                return (
-                  <TableRow key={hsn || "none"}>
-                    <TableCell>{hsn || "—"}</TableCell>
-                    <TableCell>{(Number(q.cgst_rate) || 0) + (Number(q.sgst_rate) || 0)}%</TableCell>
-                    <TableCell align="right">₹{taxable.toLocaleString("en-IN")}</TableCell>
-                    <TableCell align="right">₹{cg.toLocaleString("en-IN")}</TableCell>
-                    <TableCell align="right">₹{sg.toLocaleString("en-IN")}</TableCell>
-                    <TableCell align="right">₹{(taxable + cg + sg).toLocaleString("en-IN")}</TableCell>
-                  </TableRow>
-                );
-              })}
+              {(() => {
+                const totalSubtotal = items.reduce((s, i) => s + (i.amount || 0), 0);
+                const disc = Number(q.discount) || 0;
+                const hsnCodes = [...new Set(items.map((i) => i.hsnCode))];
+                return hsnCodes.map((hsn) => {
+                  const hsnItems = items.filter((i) => i.hsnCode === hsn);
+                  const hsnSubtotal = hsnItems.reduce((s, i) => s + (i.amount || 0), 0);
+                  const proportion = totalSubtotal > 0 ? hsnSubtotal / totalSubtotal : 0;
+                  const taxable = hsnSubtotal - disc * proportion;
+                  const cg = taxable * (Number(q.cgst_rate) || 0) / 100;
+                  const sg = taxable * (Number(q.sgst_rate) || 0) / 100;
+                  return (
+                    <TableRow key={hsn || "none"}>
+                      <TableCell>{hsn || "—"}</TableCell>
+                      <TableCell>{(Number(q.cgst_rate) || 0) + (Number(q.sgst_rate) || 0)}%</TableCell>
+                      <TableCell align="right">₹{taxable.toLocaleString("en-IN")}</TableCell>
+                      <TableCell align="right">₹{cg.toLocaleString("en-IN")}</TableCell>
+                      <TableCell align="right">₹{sg.toLocaleString("en-IN")}</TableCell>
+                      <TableCell align="right">₹{(taxable + cg + sg).toLocaleString("en-IN")}</TableCell>
+                    </TableRow>
+                  );
+                });
+              })()}
             </TableBody>
           </Table>
         </Box>
