@@ -574,29 +574,22 @@ function QuotePrintView({ quote: q, paymentMethods }) {
               </TableRow>
             </TableHead>
             <TableBody>
-              {(() => {
-                const totalSubtotal = items.reduce((s, i) => s + (i.amount || 0), 0);
-                const disc = Number(q.discount) || 0;
-                const hsnCodes = [...new Set(items.map((i) => i.hsnCode))];
-                return hsnCodes.map((hsn) => {
-                  const hsnItems = items.filter((i) => i.hsnCode === hsn);
-                  const hsnSubtotal = hsnItems.reduce((s, i) => s + (i.amount || 0), 0);
-                  const proportion = totalSubtotal > 0 ? hsnSubtotal / totalSubtotal : 0;
-                  const taxable = hsnSubtotal - disc * proportion;
-                  const cg = taxable * (Number(q.cgst_rate) || 0) / 100;
-                  const sg = taxable * (Number(q.sgst_rate) || 0) / 100;
-                  return (
-                    <TableRow key={hsn || "none"}>
-                      <TableCell>{hsn || "—"}</TableCell>
-                      <TableCell>{(Number(q.cgst_rate) || 0) + (Number(q.sgst_rate) || 0)}%</TableCell>
-                      <TableCell align="right">₹{taxable.toLocaleString("en-IN")}</TableCell>
-                      <TableCell align="right">₹{cg.toLocaleString("en-IN")}</TableCell>
-                      <TableCell align="right">₹{sg.toLocaleString("en-IN")}</TableCell>
-                      <TableCell align="right">₹{(taxable + cg + sg).toLocaleString("en-IN")}</TableCell>
-                    </TableRow>
-                  );
-                });
-              })()}
+              {[...new Set(items.map((i) => i.hsnCode))].map((hsn) => {
+                const hsnItems = items.filter((i) => i.hsnCode === hsn);
+                const taxable = hsnItems.reduce((s, i) => s + (i.amount || 0), 0);
+                const cg = taxable * (Number(q.cgst_rate) || 0) / 100;
+                const sg = taxable * (Number(q.sgst_rate) || 0) / 100;
+                return (
+                  <TableRow key={hsn || "none"}>
+                    <TableCell>{hsn || "—"}</TableCell>
+                    <TableCell>{(Number(q.cgst_rate) || 0) + (Number(q.sgst_rate) || 0)}%</TableCell>
+                    <TableCell align="right">₹{taxable.toLocaleString("en-IN")}</TableCell>
+                    <TableCell align="right">₹{cg.toLocaleString("en-IN")}</TableCell>
+                    <TableCell align="right">₹{sg.toLocaleString("en-IN")}</TableCell>
+                    <TableCell align="right">₹{(cg + sg).toLocaleString("en-IN")}</TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </Box>
