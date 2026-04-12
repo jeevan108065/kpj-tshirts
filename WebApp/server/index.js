@@ -23,6 +23,9 @@ app.use(cors({
 // ─── Security: Body size limit to prevent DoS ───
 app.use(express.json({ limit: "1mb" }));
 
+// ─── Health check endpoint (used by self-ping & uptime monitors) ───
+app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
+
 // ─── Token management ───
 // Instead of sending the raw password as a token, we generate an HMAC-signed session token.
 // The password never leaves the server after login.
@@ -605,5 +608,22 @@ async function autoMigrate() {
 }
 
 autoMigrate().then(() => {
-  app.listen(PORT, () => console.log(`KPJ API running on port ${PORT}`));
+  app.listen(PORT, () => {
+    console.log(`KPJ API running on port ${PORT}`);
+
+    // ─── Self-ping to prevent Render free-tier spin-down ───
+    const SELF_URL = process.env.RENDER_EXTERNAL_URL;
+    if (SELF_URL) {
+      const INTERVAL = 14 * 60 * 1000; // 14 minutes
+      setInterval(async () => {
+        try {
+          await fetch(`${SELF_URL}/api/health`);
+          console.log("Self-ping OK");
+        } catch (err) {
+          console.log("Self-ping failed:", err.message);
+        }
+      }, INTERVAL);
+      console.log(`Self-ping enabled → ${SELF_URL}/api/health every 14m`);
+    }
+  });
 });
