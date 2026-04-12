@@ -12,6 +12,7 @@ import InventoryIcon from "@mui/icons-material/Inventory";
 import CategoryIcon from "@mui/icons-material/Category";
 import PaymentIcon from "@mui/icons-material/Payment";
 import LogoutIcon from "@mui/icons-material/Logout";
+import SchoolIcon from "@mui/icons-material/School";
 import { useNavigate, useLocation, Outlet } from "react-router-dom";
 
 const DRAWER_WIDTH = 240;
@@ -24,6 +25,7 @@ const menuItems = [
   { label: "Inventory", icon: <InventoryIcon />, path: "/admin/inventory" },
   { label: "Categories", icon: <CategoryIcon />, path: "/admin/categories" },
   { label: "Payments", icon: <PaymentIcon />, path: "/admin/payments" },
+  { label: "School Uniforms", icon: <SchoolIcon />, path: "/admin/school-uniforms" },
 ];
 
 const AdminLayout = ({ onLogout }) => {

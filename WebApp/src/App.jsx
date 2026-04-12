@@ -8,6 +8,7 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import AppRoutes from "./Routes";
 import AdminApp from "./admin/AdminApp";
+import { UserAuthProvider } from "./context/UserAuthContext";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -30,25 +31,27 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <ScrollToTop />
-      <Box sx={{ minHeight: "100vh", display: "flex", flexDirection: "column", bgcolor: "#fff" }}>
-        <Header />
-        <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={location.pathname}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              style={{ flex: 1, display: "flex", flexDirection: "column" }}
-            >
-              <AppRoutes />
-            </motion.div>
-          </AnimatePresence>
+      <UserAuthProvider>
+        <ScrollToTop />
+        <Box sx={{ minHeight: "100vh", display: "flex", flexDirection: "column", bgcolor: "#fff" }}>
+          <Header />
+          <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={location.pathname}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                style={{ flex: 1, display: "flex", flexDirection: "column" }}
+              >
+                <AppRoutes />
+              </motion.div>
+            </AnimatePresence>
+          </Box>
+          <Footer />
         </Box>
-        <Footer />
-      </Box>
+      </UserAuthProvider>
     </ThemeProvider>
   );
 }

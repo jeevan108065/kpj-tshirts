@@ -12,6 +12,7 @@ import Orders from "./Orders";
 import Inventory from "./Inventory";
 import Categories from "./Categories";
 import PaymentMethods from "./PaymentMethods";
+import SchoolUniforms from "./SchoolUniforms";
 
 const AdminApp = () => {
   const [authed, setAuthed] = useState(sessionStorage.getItem("kpj_admin") === "1");
@@ -56,6 +57,7 @@ const AdminApp = () => {
             <Route path="inventory" element={<Inventory />} />
             <Route path="categories" element={<Categories />} />
             <Route path="payments" element={<PaymentMethods />} />
+            <Route path="school-uniforms" element={<SchoolUniforms />} />
           </Route>
           <Route path="*" element={<Navigate to="/admin" replace />} />
         </Routes>

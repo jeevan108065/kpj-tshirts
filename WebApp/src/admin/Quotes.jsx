@@ -8,6 +8,7 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import PrintIcon from "@mui/icons-material/Print";
+import DownloadIcon from "@mui/icons-material/Download";
 import DeleteIcon from "@mui/icons-material/Delete";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
@@ -139,10 +140,11 @@ const Quotes = () => {
   const calcTotals = () => {
     const subtotal = form.items.reduce((s, i) => s + (i.amount || 0), 0);
     const totalQty = form.items.reduce((s, i) => s + (Number.parseFloat(i.qty) || 0), 0);
-    const cgstAmt = subtotal * (Number.parseFloat(form.cgst_rate) || 0) / 100;
-    const sgstAmt = subtotal * (Number.parseFloat(form.sgst_rate) || 0) / 100;
     const disc = Number.parseFloat(form.discount) || 0;
-    return { subtotal, totalQty, cgstAmt, sgstAmt, grandTotal: subtotal + cgstAmt + sgstAmt - disc };
+    const taxable = subtotal - disc;
+    const cgstAmt = taxable * (Number.parseFloat(form.cgst_rate) || 0) / 100;
+    const sgstAmt = taxable * (Number.parseFloat(form.sgst_rate) || 0) / 100;
+    return { subtotal, totalQty, cgstAmt, sgstAmt, grandTotal: taxable + cgstAmt + sgstAmt };
   };
 
   const handleSave = async () => {
@@ -431,7 +433,28 @@ const Quotes = () => {
         <DialogContent sx={{ p: 0 }}>{viewQuote && <QuotePrintView quote={viewQuote} paymentMethods={paymentMethods} />}</DialogContent>
         <DialogActions className="no-print" sx={{ px: 3, pb: 2 }}>
           <Button onClick={() => setViewOpen(false)}>Close</Button>
-          <Button variant="contained" startIcon={<PrintIcon />} onClick={() => globalThis.print()}>Print</Button>
+          <Button
+            variant="contained"
+            startIcon={isMobile ? <DownloadIcon /> : <PrintIcon />}
+            onClick={async () => {
+              if (isMobile) {
+                const el = document.querySelector(".print-area");
+                if (!el) return;
+                const html2pdf = (await import("html2pdf.js")).default;
+                html2pdf().set({
+                  margin: [5, 5, 5, 5],
+                  filename: `${viewQuote?.quote_number || "quote"}.pdf`,
+                  image: { type: "jpeg", quality: 0.98 },
+                  html2canvas: { scale: 2, useCORS: true },
+                  jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+                }).from(el).save();
+              } else {
+                globalThis.print();
+              }
+            }}
+          >
+            {isMobile ? "Download PDF" : "Print"}
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>
@@ -563,7 +586,7 @@ function QuotePrintView({ quote: q, paymentMethods }) {
                     <TableCell align="right">₹{taxable.toLocaleString("en-IN")}</TableCell>
                     <TableCell align="right">₹{cg.toLocaleString("en-IN")}</TableCell>
                     <TableCell align="right">₹{sg.toLocaleString("en-IN")}</TableCell>
-                    <TableCell align="right">₹{(taxable + cg + sg).toLocaleString("en-IN")}</TableCell>
+                    <TableCell align="right">₹{(cg + sg).toLocaleString("en-IN")}</TableCell>
                   </TableRow>
                 );
               })}
