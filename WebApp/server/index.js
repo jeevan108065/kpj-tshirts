@@ -4,6 +4,7 @@ import crypto from "crypto";
 import dotenv from "dotenv";
 import pool from "./db/pool.js";
 import { setupSwagger } from "./swagger.js";
+import { sendEmail, passwordResetEmail } from "./email.js";
 
 dotenv.config();
 const app = express();
@@ -170,6 +171,202 @@ app.post("/api/auth/login", rateLimit(60000, 10), (req, res) => {
     res.json({ token, role: "admin" });
   } else {
     res.status(401).json({ error: "Invalid password" });
+  }
+});
+
+// ─── USER AUTH — crypto.scrypt password hashing ───
+import { promisify } from "util";
+const scryptAsync = promisify(crypto.scrypt);
+
+async function hashPassword(password) {
+  const salt = crypto.randomBytes(16).toString("hex");
+  const buf = await scryptAsync(password, salt, 64);
+  return `${salt}:${buf.toString("hex")}`;
+}
+
+async function verifyPassword(password, hash) {
+  const [salt, key] = hash.split(":");
+  const buf = await scryptAsync(password, salt, 64);
+  return crypto.timingSafeEqual(Buffer.from(key, "hex"), buf);
+}
+
+// User token management (separate from admin tokens)
+const userTokens = new Map(); // token -> { userId, createdAt }
+
+function generateUserToken(userId) {
+  const token = crypto.randomBytes(48).toString("hex");
+  userTokens.set(token, { userId, createdAt: Date.now() });
+  return token;
+}
+
+function getUserFromToken(token) {
+  if (!token || typeof token !== "string") return null;
+  const session = userTokens.get(token);
+  if (!session) return null;
+  if (Date.now() - session.createdAt > TOKEN_MAX_AGE) {
+    userTokens.delete(token);
+    return null;
+  }
+  return session.userId;
+}
+
+// Cleanup expired user tokens
+setInterval(() => {
+  const now = Date.now();
+  for (const [token, session] of userTokens) {
+    if (now - session.createdAt > TOKEN_MAX_AGE) userTokens.delete(token);
+  }
+}, 60 * 60 * 1000);
+
+// User auth middleware
+function userAuth(req, res, next) {
+  const token = req.headers.authorization?.replace("Bearer ", "");
+  const userId = getUserFromToken(token);
+  if (!userId) return res.status(401).json({ error: "Unauthorized" });
+  req.userId = userId;
+  next();
+}
+
+// Register
+app.post("/api/users/register", rateLimit(60000, 5), async (req, res) => {
+  try {
+    const { name, email, password, phone } = req.body;
+    if (!name || !email || !password) return res.status(400).json({ error: "Name, email and password are required" });
+    if (password.length < 6) return res.status(400).json({ error: "Password must be at least 6 characters" });
+    const emailLower = email.toLowerCase().trim();
+    const existing = await pool.query("SELECT id FROM users WHERE email = $1", [emailLower]);
+    if (existing.rows.length > 0) return res.status(409).json({ error: "Email already registered" });
+    const password_hash = await hashPassword(password);
+    const { rows } = await pool.query(
+      "INSERT INTO users (name, email, phone, password_hash) VALUES ($1,$2,$3,$4) RETURNING id, name, email, phone, created_at",
+      [sanitize(name), emailLower, sanitize(phone || ""), password_hash]
+    );
+    const token = generateUserToken(rows[0].id);
+    res.status(201).json({ token, user: rows[0] });
+  } catch (err) {
+    console.error("POST /api/users/register error:", err.message);
+    res.status(500).json({ error: "Registration failed" });
+  }
+});
+
+// Login
+app.post("/api/users/login", rateLimit(60000, 10), async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) return res.status(400).json({ error: "Email and password are required" });
+    const { rows } = await pool.query("SELECT * FROM users WHERE email = $1", [email.toLowerCase().trim()]);
+    if (rows.length === 0) return res.status(401).json({ error: "Invalid email or password" });
+    const user = rows[0];
+    const valid = await verifyPassword(password, user.password_hash);
+    if (!valid) return res.status(401).json({ error: "Invalid email or password" });
+    const token = generateUserToken(user.id);
+    res.json({ token, user: { id: user.id, name: user.name, email: user.email, phone: user.phone, created_at: user.created_at } });
+  } catch (err) {
+    console.error("POST /api/users/login error:", err.message);
+    res.status(500).json({ error: "Login failed" });
+  }
+});
+
+// Get current user profile
+app.get("/api/users/me", userAuth, async (req, res) => {
+  try {
+    const { rows } = await pool.query("SELECT id, name, email, phone, created_at FROM users WHERE id = $1", [req.userId]);
+    if (rows.length === 0) return res.status(404).json({ error: "User not found" });
+    res.json(rows[0]);
+  } catch (err) {
+    console.error("GET /api/users/me error:", err.message);
+    res.status(500).json({ error: "Failed to fetch profile" });
+  }
+});
+
+// Get user's quotes (matched by email)
+app.get("/api/users/my-quotes", userAuth, async (req, res) => {
+  try {
+    const { rows: userRows } = await pool.query("SELECT email FROM users WHERE id = $1", [req.userId]);
+    if (userRows.length === 0) return res.status(404).json({ error: "User not found" });
+    const { rows } = await pool.query(
+      "SELECT id, quote_number, quote_type, billing_name, grand_total, total_qty, status, created_at FROM quotes WHERE billing_email = $1 ORDER BY created_at DESC",
+      [userRows[0].email]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error("GET /api/users/my-quotes error:", err.message);
+    res.status(500).json({ error: "Failed to fetch quotes" });
+  }
+});
+
+// Get user's orders (matched via quotes by email)
+app.get("/api/users/my-orders", userAuth, async (req, res) => {
+  try {
+    const { rows: userRows } = await pool.query("SELECT email FROM users WHERE id = $1", [req.userId]);
+    if (userRows.length === 0) return res.status(404).json({ error: "User not found" });
+    const { rows } = await pool.query(
+      `SELECT o.id, o.client_name, o.items, o.total_amount, o.total_qty, o.status, o.created_at, o.delivered_at
+       FROM orders o JOIN quotes q ON o.quote_id = q.id
+       WHERE q.billing_email = $1 ORDER BY o.created_at DESC`,
+      [userRows[0].email]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error("GET /api/users/my-orders error:", err.message);
+    res.status(500).json({ error: "Failed to fetch orders" });
+  }
+});
+
+// ─── Password Reset ───
+const resetTokens = new Map(); // token -> { email, createdAt }
+const RESET_TOKEN_MAX_AGE = 30 * 60 * 1000; // 30 minutes
+
+// Cleanup expired reset tokens
+setInterval(() => {
+  const now = Date.now();
+  for (const [token, data] of resetTokens) {
+    if (now - data.createdAt > RESET_TOKEN_MAX_AGE) resetTokens.delete(token);
+  }
+}, 10 * 60 * 1000);
+
+// Request password reset
+app.post("/api/users/forgot-password", rateLimit(60000, 5), async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: "Email is required" });
+    const emailLower = email.toLowerCase().trim();
+    const { rows } = await pool.query("SELECT id FROM users WHERE email = $1", [emailLower]);
+    // Always return success to prevent email enumeration
+    if (rows.length === 0) return res.json({ message: "If that email exists, a reset link has been generated" });
+    const token = crypto.randomBytes(32).toString("hex");
+    resetTokens.set(token, { email: emailLower, createdAt: Date.now() });
+    const resetUrl = `${process.env.FRONTEND_URL || "http://localhost:5173"}/reset-password?token=${token}`;
+    await sendEmail({
+      to: emailLower,
+      subject: "Reset your KPJ Garments password",
+      html: passwordResetEmail(resetUrl),
+    });
+    res.json({ message: "If that email exists, a reset link has been generated" });
+  } catch (err) {
+    console.error("POST /api/users/forgot-password error:", err.message);
+    res.status(500).json({ error: "Failed to process reset request" });
+  }
+});
+
+// Reset password with token
+app.post("/api/users/reset-password", rateLimit(60000, 5), async (req, res) => {
+  try {
+    const { token, password } = req.body;
+    if (!token || !password) return res.status(400).json({ error: "Token and new password are required" });
+    if (password.length < 6) return res.status(400).json({ error: "Password must be at least 6 characters" });
+    const data = resetTokens.get(token);
+    if (!data || Date.now() - data.createdAt > RESET_TOKEN_MAX_AGE) {
+      resetTokens.delete(token);
+      return res.status(400).json({ error: "Reset link is invalid or expired" });
+    }
+    const password_hash = await hashPassword(password);
+    await pool.query("UPDATE users SET password_hash = $1 WHERE email = $2", [password_hash, data.email]);
+    resetTokens.delete(token);
+    res.json({ message: "Password reset successfully" });
+  } catch (err) {
+    console.error("POST /api/users/reset-password error:", err.message);
+    res.status(500).json({ error: "Failed to reset password" });
   }
 });
 
@@ -601,6 +798,16 @@ async function autoMigrate() {
         total_qty INTEGER DEFAULT 0,
         comments TEXT DEFAULT '',
         status VARCHAR(20) DEFAULT 'draft',
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(200) NOT NULL,
+        email VARCHAR(200) UNIQUE NOT NULL,
+        phone VARCHAR(20),
+        password_hash TEXT NOT NULL,
         created_at TIMESTAMPTZ DEFAULT NOW()
       )
     `);

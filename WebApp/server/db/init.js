@@ -105,6 +105,15 @@ CREATE TABLE IF NOT EXISTS metrics (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS users (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(200) NOT NULL,
+  email VARCHAR(200) UNIQUE NOT NULL,
+  phone VARCHAR(20),
+  password_hash TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Seed default categories if empty
 INSERT INTO categories (name, description)
 SELECT * FROM (VALUES

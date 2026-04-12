@@ -7,8 +7,10 @@ import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
 import ExpandMore from "@mui/icons-material/ExpandMore";
 import ExpandLess from "@mui/icons-material/ExpandLess";
+import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import { Link, useLocation } from "react-router-dom";
 import kpjLogo from "../assets/kpjLogo.svg";
+import { useUserAuth } from "../context/UserAuthContext";
 
 const productLinks = [
   { label: "T-Shirts", to: "/products/tshirts" },
@@ -29,6 +31,7 @@ const Header = () => {
   const [productsOpen, setProductsOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const location = useLocation();
+  const { user } = useUserAuth() || {};
 
   const isActive = (path) => location.pathname === path;
   const isProductActive = productLinks.some((p) => location.pathname === p.to);
@@ -103,6 +106,15 @@ const Header = () => {
             </Box>
 
             {/* CTA */}
+            <Button
+              component={Link}
+              to={user ? "/account" : "/login"}
+              size="small"
+              startIcon={<PersonOutlineIcon />}
+              sx={{ display: { xs: "none", md: "flex" }, color: "#fff", fontWeight: 600, mr: 1, "&:hover": { color: "#F5A623" } }}
+            >
+              {user ? user.name.split(" ")[0] : "Login"}
+            </Button>
             <Button
               component={Link}
               to="/quote"
@@ -186,6 +198,13 @@ const Header = () => {
           ))}
         </List>
         <Box sx={{ p: 2, borderTop: "1px solid rgba(255,255,255,0.1)" }}>
+          <Button
+            component={Link} to={user ? "/account" : "/login"} fullWidth onClick={closeMobile}
+            startIcon={<PersonOutlineIcon />}
+            sx={{ color: "#fff", fontWeight: 600, mb: 1, justifyContent: "flex-start", "&:hover": { color: "#F5A623" } }}
+          >
+            {user ? `My Account (${user.name.split(" ")[0]})` : "Login / Register"}
+          </Button>
           <Button
             component={Link} to="/quote" variant="contained" fullWidth onClick={closeMobile}
             sx={{ background: "linear-gradient(135deg, #F5A623, #e8941a)", color: "#1E3A5F", fontWeight: 700, py: 1.5 }}

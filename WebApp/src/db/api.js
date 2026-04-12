@@ -40,6 +40,51 @@ async function request(path, options = {}, _retry = 0) {
 // Auth
 export const login = (password) => request("/api/auth/login", { method: "POST", body: JSON.stringify({ password }) });
 
+// User Auth
+function getUserToken() {
+  return localStorage.getItem("kpj_user_token") || "";
+}
+
+async function userRequest(path, options = {}, _retry = 0) {
+  let res;
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${getUserToken()}`,
+        ...options.headers,
+      },
+    });
+  } catch (networkErr) {
+    if (_retry < 2) {
+      await new Promise((r) => setTimeout(r, 3000));
+      return userRequest(path, options, _retry + 1);
+    }
+    throw new Error("Cannot connect to server.");
+  }
+  if (res.status === 401) {
+    localStorage.removeItem("kpj_user_token");
+    localStorage.removeItem("kpj_user");
+    const err = new Error("Session expired. Please login again.");
+    err.status = 401;
+    throw err;
+  }
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(err.error || "Request failed");
+  }
+  return res.json();
+}
+
+export const userRegister = (data) => userRequest("/api/users/register", { method: "POST", body: JSON.stringify(data) });
+export const userLogin = (data) => userRequest("/api/users/login", { method: "POST", body: JSON.stringify(data) });
+export const getUserProfile = () => userRequest("/api/users/me");
+export const getMyQuotes = () => userRequest("/api/users/my-quotes");
+export const getMyOrders = () => userRequest("/api/users/my-orders");
+export const forgotPassword = (email) => userRequest("/api/users/forgot-password", { method: "POST", body: JSON.stringify({ email }) });
+export const resetPassword = (token, password) => userRequest("/api/users/reset-password", { method: "POST", body: JSON.stringify({ token, password }) });
+
 // Metrics (public)
 export const getMetrics = () => request("/api/metrics");
 
