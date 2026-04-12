@@ -114,6 +114,68 @@ CREATE TABLE IF NOT EXISTS users (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS schools (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(200) NOT NULL,
+  code VARCHAR(50) UNIQUE,
+  address TEXT,
+  active BOOLEAN DEFAULT true,
+  gst_percent NUMERIC(5,2) DEFAULT 0,
+  razorpay_key_id VARCHAR(100),
+  razorpay_key_secret VARCHAR(200),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS school_uniforms (
+  id SERIAL PRIMARY KEY,
+  school_id INTEGER REFERENCES schools(id) ON DELETE CASCADE,
+  name VARCHAR(200) NOT NULL,
+  description TEXT,
+  mrp NUMERIC(12,2) DEFAULT 0,
+  price NUMERIC(12,2) DEFAULT 0,
+  sizes TEXT DEFAULT 'XS,S,M,L,XL,XXL',
+  image_url TEXT,
+  image_data TEXT,
+  stock INTEGER DEFAULT 0,
+  active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS school_coupons (
+  id SERIAL PRIMARY KEY,
+  school_id INTEGER REFERENCES schools(id) ON DELETE CASCADE,
+  code VARCHAR(50) NOT NULL,
+  discount_type VARCHAR(10) DEFAULT 'percent',
+  discount_value NUMERIC(12,2) DEFAULT 0,
+  max_uses INTEGER DEFAULT 10,
+  used_count INTEGER DEFAULT 0,
+  active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(school_id, code)
+);
+
+CREATE TABLE IF NOT EXISTS uniform_orders (
+  id SERIAL PRIMARY KEY,
+  school_id INTEGER REFERENCES schools(id) ON DELETE SET NULL,
+  student_name VARCHAR(200) NOT NULL,
+  student_class VARCHAR(50),
+  parent_name VARCHAR(200),
+  parent_phone VARCHAR(20),
+  parent_email VARCHAR(200),
+  items JSONB DEFAULT '[]',
+  subtotal NUMERIC(12,2) DEFAULT 0,
+  gst_percent NUMERIC(5,2) DEFAULT 0,
+  gst_amount NUMERIC(12,2) DEFAULT 0,
+  discount_amount NUMERIC(12,2) DEFAULT 0,
+  total_amount NUMERIC(12,2) DEFAULT 0,
+  coupon_code VARCHAR(50),
+  razorpay_order_id VARCHAR(100),
+  razorpay_payment_id VARCHAR(100),
+  payment_status VARCHAR(20) DEFAULT 'pending',
+  order_status VARCHAR(20) DEFAULT 'pending',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Seed default categories if empty
 INSERT INTO categories (name, description)
 SELECT * FROM (VALUES

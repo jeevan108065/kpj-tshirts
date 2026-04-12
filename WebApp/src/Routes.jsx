@@ -8,11 +8,13 @@ import Login from "./pages/Login";
 import Account from "./pages/Account";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import SchoolUniforms from "./pages/SchoolUniforms";
 
 const AppRoutes = () => (
   <Routes>
     <Route path="/" element={<Home />} />
     <Route path="/products/:categoryId" element={<Products />} />
+    <Route path="/school-uniforms" element={<SchoolUniforms />} />
     <Route path="/about" element={<About />} />
     <Route path="/contact" element={<Contact />} />
     <Route path="/quote" element={<Quote />} />

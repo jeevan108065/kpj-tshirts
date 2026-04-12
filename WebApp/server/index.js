@@ -4,7 +4,7 @@ import crypto from "crypto";
 import dotenv from "dotenv";
 import pool from "./db/pool.js";
 import { setupSwagger } from "./swagger.js";
-import { sendEmail, passwordResetEmail } from "./email.js";
+import { sendEmail, passwordResetEmail, orderConfirmationEmail } from "./email.js";
 
 dotenv.config();
 const app = express();
@@ -22,7 +22,7 @@ app.use(cors({
 }));
 
 // ─── Security: Body size limit to prevent DoS ───
-app.use(express.json({ limit: "1mb" }));
+app.use(express.json({ limit: "2mb" }));
 
 // ─── Health check endpoint (used by self-ping & uptime monitors) ───
 app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
@@ -310,6 +310,24 @@ app.get("/api/users/my-orders", userAuth, async (req, res) => {
   } catch (err) {
     console.error("GET /api/users/my-orders error:", err.message);
     res.status(500).json({ error: "Failed to fetch orders" });
+  }
+});
+
+// Get user's uniform orders (matched by email)
+app.get("/api/users/my-uniform-orders", userAuth, async (req, res) => {
+  try {
+    const { rows: userRows } = await pool.query("SELECT email FROM users WHERE id = $1", [req.userId]);
+    if (userRows.length === 0) return res.status(404).json({ error: "User not found" });
+    const { rows } = await pool.query(
+      `SELECT uo.id, uo.student_name, uo.student_class, uo.items, uo.subtotal, uo.gst_amount, uo.discount_amount, uo.total_amount, uo.payment_status, uo.order_status, uo.created_at, s.name as school_name
+       FROM uniform_orders uo LEFT JOIN schools s ON uo.school_id = s.id
+       WHERE uo.parent_email = $1 ORDER BY uo.created_at DESC`,
+      [userRows[0].email]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error("GET /api/users/my-uniform-orders error:", err.message);
+    res.status(500).json({ error: "Failed to fetch uniform orders" });
   }
 });
 
@@ -769,6 +787,247 @@ app.delete("/api/orders/:id", adminAuth, async (req, res) => {
   } catch (err) { console.error("DELETE /api/orders error:", err.message); res.status(500).json({ error: "Failed to delete order" }); }
 });
 
+// ─── Schools (Admin CRUD) ───
+app.get("/api/schools", async (req, res) => {
+  try {
+    const { rows } = await pool.query("SELECT id, name, code, address, active, gst_percent, razorpay_key_id, created_at FROM schools ORDER BY name");
+    res.json(rows);
+  } catch (err) { console.error("GET /api/schools error:", err.message); res.json([]); }
+});
+app.post("/api/schools", adminAuth, async (req, res) => {
+  try {
+    const { name, code, address, gst_percent, razorpay_key_id, razorpay_key_secret } = req.body;
+    const { rows } = await pool.query(
+      "INSERT INTO schools (name, code, address, gst_percent, razorpay_key_id, razorpay_key_secret) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id, name, code, address, active, gst_percent, razorpay_key_id, created_at",
+      [sanitize(name), sanitize(code), sanitize(address), gst_percent || 0, razorpay_key_id || null, razorpay_key_secret || null]
+    );
+    res.json(rows[0]);
+  } catch (err) { console.error("POST /api/schools error:", err.message); res.status(500).json({ error: "Failed to create school" }); }
+});
+app.put("/api/schools/:id", adminAuth, async (req, res) => {
+  try {
+    const { name, code, address, active, gst_percent, razorpay_key_id, razorpay_key_secret } = req.body;
+    const { rows } = await pool.query(
+      "UPDATE schools SET name=$1, code=$2, address=$3, active=$4, gst_percent=$5, razorpay_key_id=$6, razorpay_key_secret=$7 WHERE id=$8 RETURNING id, name, code, address, active, gst_percent, razorpay_key_id, created_at",
+      [sanitize(name), sanitize(code), sanitize(address), active !== false, gst_percent || 0, razorpay_key_id || null, razorpay_key_secret || null, req.params.id]
+    );
+    res.json(rows[0]);
+  } catch (err) { console.error("PUT /api/schools error:", err.message); res.status(500).json({ error: "Failed to update school" }); }
+});
+app.delete("/api/schools/:id", adminAuth, async (req, res) => {
+  try { await pool.query("DELETE FROM schools WHERE id=$1", [req.params.id]); res.json({ ok: true }); }
+  catch (err) { console.error("DELETE /api/schools error:", err.message); res.status(500).json({ error: "Failed to delete school" }); }
+});
+
+// ─── School Uniforms (Admin CRUD) ───
+app.get("/api/school-uniforms", async (req, res) => {
+  try {
+    const schoolId = req.query.school_id;
+    const activeOnly = req.query.active === "true";
+    let sql = "SELECT su.*, s.name as school_name FROM school_uniforms su JOIN schools s ON su.school_id = s.id";
+    const params = [];
+    const conds = [];
+    if (schoolId) { conds.push(`su.school_id = $${params.length + 1}`); params.push(schoolId); }
+    if (activeOnly) { conds.push("su.active = true AND s.active = true"); }
+    if (conds.length) sql += " WHERE " + conds.join(" AND ");
+    sql += " ORDER BY su.name";
+    const { rows } = await pool.query(sql, params);
+    res.json(rows);
+  } catch (err) { console.error("GET /api/school-uniforms error:", err.message); res.json([]); }
+});
+app.post("/api/school-uniforms", adminAuth, async (req, res) => {
+  try {
+    const { school_id, name, description, mrp, price, sizes, image_url, image_data, stock } = req.body;
+    if (image_data && image_data.length > 1.4 * 1024 * 1024) return res.status(400).json({ error: "Image must be under 1MB" });
+    const { rows } = await pool.query(
+      "INSERT INTO school_uniforms (school_id, name, description, mrp, price, sizes, image_url, image_data, stock) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *",
+      [school_id, sanitize(name), sanitize(description), mrp || 0, price || 0, sizes || "XS,S,M,L,XL,XXL", image_url || null, image_data || null, stock || 0]
+    );
+    res.json(rows[0]);
+  } catch (err) { console.error("POST /api/school-uniforms error:", err.message); res.status(500).json({ error: "Failed to create uniform" }); }
+});
+app.put("/api/school-uniforms/:id", adminAuth, async (req, res) => {
+  try {
+    const { name, description, mrp, price, sizes, image_url, image_data, stock, active, school_id } = req.body;
+    if (image_data && image_data.length > 1.4 * 1024 * 1024) return res.status(400).json({ error: "Image must be under 1MB" });
+    const { rows } = await pool.query(
+      "UPDATE school_uniforms SET name=$1, description=$2, mrp=$3, price=$4, sizes=$5, image_url=$6, image_data=$7, stock=$8, active=$9, school_id=$10 WHERE id=$11 RETURNING *",
+      [sanitize(name), sanitize(description), mrp || 0, price || 0, sizes, image_url || null, image_data !== undefined ? (image_data || null) : undefined, stock || 0, active !== false, school_id, req.params.id]
+    );
+    res.json(rows[0]);
+  } catch (err) { console.error("PUT /api/school-uniforms error:", err.message); res.status(500).json({ error: "Failed to update uniform" }); }
+});
+app.delete("/api/school-uniforms/:id", adminAuth, async (req, res) => {
+  try { await pool.query("DELETE FROM school_uniforms WHERE id=$1", [req.params.id]); res.json({ ok: true }); }
+  catch (err) { console.error("DELETE /api/school-uniforms error:", err.message); res.status(500).json({ error: "Failed to delete uniform" }); }
+});
+
+// ─── School Coupons (Admin CRUD + Public validation) ───
+app.get("/api/school-coupons", adminAuth, async (req, res) => {
+  try {
+    const schoolId = req.query.school_id;
+    let sql = "SELECT sc.*, s.name as school_name FROM school_coupons sc JOIN schools s ON sc.school_id = s.id";
+    const params = [];
+    if (schoolId) { sql += " WHERE sc.school_id = $1"; params.push(schoolId); }
+    sql += " ORDER BY sc.created_at DESC";
+    const { rows } = await pool.query(sql, params);
+    res.json(rows);
+  } catch (err) { console.error("GET /api/school-coupons error:", err.message); res.json([]); }
+});
+app.post("/api/school-coupons", adminAuth, async (req, res) => {
+  try {
+    const { school_id, code, discount_type, discount_value, max_uses } = req.body;
+    if (!school_id || !code) return res.status(400).json({ error: "School and coupon code are required" });
+    const { rows } = await pool.query(
+      "INSERT INTO school_coupons (school_id, code, discount_type, discount_value, max_uses) VALUES ($1,$2,$3,$4,$5) RETURNING *",
+      [school_id, sanitize(code).toUpperCase(), discount_type || "percent", discount_value || 0, max_uses || 10]
+    );
+    res.json(rows[0]);
+  } catch (err) {
+    if (err.code === "23505") return res.status(409).json({ error: "Coupon code already exists for this school" });
+    console.error("POST /api/school-coupons error:", err.message); res.status(500).json({ error: "Failed to create coupon" });
+  }
+});
+app.put("/api/school-coupons/:id", adminAuth, async (req, res) => {
+  try {
+    const { code, discount_type, discount_value, max_uses, active } = req.body;
+    const { rows } = await pool.query(
+      "UPDATE school_coupons SET code=$1, discount_type=$2, discount_value=$3, max_uses=$4, active=$5 WHERE id=$6 RETURNING *",
+      [sanitize(code).toUpperCase(), discount_type, discount_value || 0, max_uses || 10, active !== false, req.params.id]
+    );
+    res.json(rows[0]);
+  } catch (err) { console.error("PUT /api/school-coupons error:", err.message); res.status(500).json({ error: "Failed to update coupon" }); }
+});
+app.delete("/api/school-coupons/:id", adminAuth, async (req, res) => {
+  try { await pool.query("DELETE FROM school_coupons WHERE id=$1", [req.params.id]); res.json({ ok: true }); }
+  catch (err) { console.error("DELETE /api/school-coupons error:", err.message); res.status(500).json({ error: "Failed to delete coupon" }); }
+});
+
+// Public: Validate coupon
+app.post("/api/school-coupons/validate", rateLimit(60000, 20), async (req, res) => {
+  try {
+    const { school_id, code } = req.body;
+    if (!school_id || !code) return res.status(400).json({ error: "School and code are required" });
+    const { rows } = await pool.query("SELECT * FROM school_coupons WHERE school_id = $1 AND code = $2", [school_id, code.toUpperCase().trim()]);
+    if (rows.length === 0) return res.status(404).json({ error: "Invalid coupon code" });
+    const coupon = rows[0];
+    if (!coupon.active) return res.status(400).json({ error: "This coupon is no longer active" });
+    if (coupon.used_count >= coupon.max_uses) return res.status(400).json({ error: `This coupon has expired (used ${coupon.max_uses}/${coupon.max_uses} times)` });
+    res.json({ valid: true, discount_type: coupon.discount_type, discount_value: Number(coupon.discount_value), remaining: coupon.max_uses - coupon.used_count });
+  } catch (err) { console.error("POST /api/school-coupons/validate error:", err.message); res.status(500).json({ error: "Validation failed" }); }
+});
+
+// ─── Uniform Orders (Admin + Public) ───
+app.get("/api/uniform-orders", adminAuth, async (req, res) => {
+  try {
+    const { countSql, dataSql, params, limit, offset, page } = paginated(
+      "SELECT uo.*, s.name as school_name FROM uniform_orders uo LEFT JOIN schools s ON uo.school_id = s.id",
+      { req, allowedFilters: { search: { col: "uo.student_name", op: "ILIKE" }, school_id: { col: "uo.school_id", op: "=" }, payment_status: { col: "uo.payment_status", op: "=" } }, defaultOrder: "uo.id DESC" }
+    );
+    const total = parseInt((await pool.query(countSql, params)).rows[0].count);
+    const { rows } = await pool.query(dataSql, [...params, limit, offset]);
+    res.json({ rows, total, page, limit });
+  } catch (err) { console.error("GET /api/uniform-orders error:", err.message); res.json({ rows: [], total: 0, page: 1, limit: 10 }); }
+});
+app.put("/api/uniform-orders/:id", adminAuth, async (req, res) => {
+  try {
+    const { order_status } = req.body;
+    const { rows } = await pool.query("UPDATE uniform_orders SET order_status=$1 WHERE id=$2 RETURNING *", [order_status, req.params.id]);
+    res.json(rows[0]);
+  } catch (err) { console.error("PUT /api/uniform-orders error:", err.message); res.status(500).json({ error: "Failed to update order" }); }
+});
+
+// ─── Razorpay: Create order (public) ───
+app.post("/api/uniform-orders/create", rateLimit(60000, 10), async (req, res) => {
+  try {
+    const { school_id, student_name, student_class, parent_name, parent_phone, parent_email, items, coupon_code } = req.body;
+    if (!school_id || !student_name || !student_class || !parent_name || !parent_phone || !parent_email || !items?.length) {
+      return res.status(400).json({ error: "All fields including email are required" });
+    }
+    // Get school's Razorpay credentials and GST
+    const { rows: schoolRows } = await pool.query("SELECT razorpay_key_id, razorpay_key_secret, gst_percent, name FROM schools WHERE id = $1 AND active = true", [school_id]);
+    if (schoolRows.length === 0) return res.status(404).json({ error: "School not found" });
+    const school = schoolRows[0];
+    if (!school.razorpay_key_id || !school.razorpay_key_secret) return res.status(400).json({ error: "Payment not configured for this school" });
+
+    // Calculate subtotal
+    let subtotal = items.reduce((sum, i) => sum + (Number(i.price) * Number(i.qty)), 0);
+    let discount_amount = 0;
+
+    // Apply coupon if provided
+    if (coupon_code) {
+      const { rows: couponRows } = await pool.query("SELECT * FROM school_coupons WHERE school_id = $1 AND code = $2 AND active = true", [school_id, coupon_code.toUpperCase().trim()]);
+      if (couponRows.length === 0) return res.status(400).json({ error: "Invalid coupon code" });
+      const coupon = couponRows[0];
+      if (coupon.used_count >= coupon.max_uses) return res.status(400).json({ error: `Coupon expired (used ${coupon.max_uses}/${coupon.max_uses} times)` });
+      if (coupon.discount_type === "percent") discount_amount = Math.round(subtotal * Number(coupon.discount_value) / 100 * 100) / 100;
+      else discount_amount = Math.min(Number(coupon.discount_value), subtotal);
+    }
+
+    const afterDiscount = Math.max(0, subtotal - discount_amount);
+    const gst_percent = Number(school.gst_percent) || 0;
+    const gst_amount = Math.round(afterDiscount * gst_percent / 100 * 100) / 100;
+    const total_amount = Math.round((afterDiscount + gst_amount) * 100) / 100;
+
+    // Create Razorpay order
+    const rpAuth = Buffer.from(`${school.razorpay_key_id}:${school.razorpay_key_secret}`).toString("base64");
+    const rpRes = await fetch("https://api.razorpay.com/v1/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Basic ${rpAuth}` },
+      body: JSON.stringify({ amount: Math.round(total_amount * 100), currency: "INR", receipt: `unif_${Date.now()}` }),
+    });
+    if (!rpRes.ok) { const e = await rpRes.json().catch(() => ({})); return res.status(500).json({ error: e.error?.description || "Payment gateway error" }); }
+    const rpOrder = await rpRes.json();
+
+    // Save order
+    const { rows } = await pool.query(
+      `INSERT INTO uniform_orders (school_id, student_name, student_class, parent_name, parent_phone, parent_email, items, subtotal, gst_percent, gst_amount, discount_amount, total_amount, coupon_code, razorpay_order_id)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *`,
+      [school_id, sanitize(student_name), sanitize(student_class), sanitize(parent_name), sanitize(parent_phone), sanitize(parent_email), JSON.stringify(items), afterDiscount, gst_percent, gst_amount, discount_amount, total_amount, coupon_code ? coupon_code.toUpperCase().trim() : null, rpOrder.id]
+    );
+    res.json({ order: rows[0], razorpay_order_id: rpOrder.id, razorpay_key_id: school.razorpay_key_id, amount: rpOrder.amount, discount_amount, gst_amount, gst_percent });
+  } catch (err) { console.error("POST /api/uniform-orders/create error:", err.message); res.status(500).json({ error: "Failed to create order" }); }
+});
+
+// ─── Razorpay: Verify payment (public) ───
+app.post("/api/uniform-orders/verify", rateLimit(60000, 10), async (req, res) => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) return res.status(400).json({ error: "Missing payment details" });
+
+    // Get order and school secret
+    const { rows: orderRows } = await pool.query(
+      "SELECT uo.*, s.razorpay_key_secret, s.name as school_name, s.gst_percent as school_gst FROM uniform_orders uo JOIN schools s ON uo.school_id = s.id WHERE uo.razorpay_order_id = $1",
+      [razorpay_order_id]
+    );
+    if (orderRows.length === 0) return res.status(404).json({ error: "Order not found" });
+    const order = orderRows[0];
+
+    // Verify signature
+    const expectedSig = crypto.createHmac("sha256", order.razorpay_key_secret).update(`${razorpay_order_id}|${razorpay_payment_id}`).digest("hex");
+    if (expectedSig !== razorpay_signature) return res.status(400).json({ error: "Payment verification failed" });
+
+    // Update order
+    await pool.query("UPDATE uniform_orders SET razorpay_payment_id=$1, payment_status='paid', order_status='confirmed' WHERE id=$2", [razorpay_payment_id, order.id]);
+    // Increment coupon usage if coupon was used
+    if (order.coupon_code) {
+      await pool.query("UPDATE school_coupons SET used_count = used_count + 1 WHERE school_id = $1 AND code = $2", [order.school_id, order.coupon_code]);
+    }
+
+    // Send confirmation email
+    if (order.parent_email) {
+      const items = typeof order.items === "string" ? JSON.parse(order.items) : order.items;
+      sendEmail({
+        to: order.parent_email,
+        subject: `Order Confirmed — Uniform Order #${order.id}`,
+        html: orderConfirmationEmail(order, items),
+      }).catch((err) => console.error("Order email failed:", err.message));
+    }
+
+    res.json({ success: true, order_id: order.id });
+  } catch (err) { console.error("POST /api/uniform-orders/verify error:", err.message); res.status(500).json({ error: "Verification failed" }); }
+});
+
 // ─── Auto-migrate: ensure new columns/rows exist ───
 async function autoMigrate() {
   try {
@@ -811,6 +1070,56 @@ async function autoMigrate() {
         created_at TIMESTAMPTZ DEFAULT NOW()
       )
     `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS schools (
+        id SERIAL PRIMARY KEY, name VARCHAR(200) NOT NULL, code VARCHAR(50) UNIQUE,
+        address TEXT, active BOOLEAN DEFAULT true,
+        razorpay_key_id VARCHAR(100), razorpay_key_secret VARCHAR(200),
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS school_uniforms (
+        id SERIAL PRIMARY KEY, school_id INTEGER REFERENCES schools(id) ON DELETE CASCADE,
+        name VARCHAR(200) NOT NULL, description TEXT, mrp NUMERIC(12,2) DEFAULT 0, price NUMERIC(12,2) DEFAULT 0,
+        sizes TEXT DEFAULT 'XS,S,M,L,XL,XXL', image_url TEXT, image_data TEXT, stock INTEGER DEFAULT 0,
+        active BOOLEAN DEFAULT true, created_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS school_coupons (
+        id SERIAL PRIMARY KEY, school_id INTEGER REFERENCES schools(id) ON DELETE CASCADE,
+        code VARCHAR(50) NOT NULL, discount_type VARCHAR(10) DEFAULT 'percent',
+        discount_value NUMERIC(12,2) DEFAULT 0, max_uses INTEGER DEFAULT 10,
+        used_count INTEGER DEFAULT 0, active BOOLEAN DEFAULT true,
+        created_at TIMESTAMPTZ DEFAULT NOW(), UNIQUE(school_id, code)
+      )
+    `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS uniform_orders (
+        id SERIAL PRIMARY KEY, school_id INTEGER REFERENCES schools(id) ON DELETE SET NULL,
+        student_name VARCHAR(200) NOT NULL, student_class VARCHAR(50),
+        parent_name VARCHAR(200), parent_phone VARCHAR(20), parent_email VARCHAR(200),
+        items JSONB DEFAULT '[]', total_amount NUMERIC(12,2) DEFAULT 0,
+        discount_amount NUMERIC(12,2) DEFAULT 0, coupon_code VARCHAR(50),
+        razorpay_order_id VARCHAR(100), razorpay_payment_id VARCHAR(100),
+        payment_status VARCHAR(20) DEFAULT 'pending', order_status VARCHAR(20) DEFAULT 'pending',
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `);
+    // Add new columns to existing tables if they don't exist
+    for (const q of [
+      "DO $$ BEGIN ALTER TABLE school_uniforms ADD COLUMN mrp NUMERIC(12,2) DEFAULT 0; EXCEPTION WHEN duplicate_column THEN NULL; END $$;",
+      "DO $$ BEGIN ALTER TABLE school_uniforms ADD COLUMN image_data TEXT; EXCEPTION WHEN duplicate_column THEN NULL; END $$;",
+      "DO $$ BEGIN ALTER TABLE schools ADD COLUMN gst_percent NUMERIC(5,2) DEFAULT 0; EXCEPTION WHEN duplicate_column THEN NULL; END $$;",
+      "DO $$ BEGIN ALTER TABLE uniform_orders ADD COLUMN discount_amount NUMERIC(12,2) DEFAULT 0; EXCEPTION WHEN duplicate_column THEN NULL; END $$;",
+      "DO $$ BEGIN ALTER TABLE uniform_orders ADD COLUMN coupon_code VARCHAR(50); EXCEPTION WHEN duplicate_column THEN NULL; END $$;",
+      "DO $$ BEGIN ALTER TABLE uniform_orders ADD COLUMN subtotal NUMERIC(12,2) DEFAULT 0; EXCEPTION WHEN duplicate_column THEN NULL; END $$;",
+      "DO $$ BEGIN ALTER TABLE uniform_orders ADD COLUMN gst_percent NUMERIC(5,2) DEFAULT 0; EXCEPTION WHEN duplicate_column THEN NULL; END $$;",
+      "DO $$ BEGIN ALTER TABLE uniform_orders ADD COLUMN gst_amount NUMERIC(12,2) DEFAULT 0; EXCEPTION WHEN duplicate_column THEN NULL; END $$;",
+    ]) {
+      try { await pool.query(q); } catch (e) { console.error("Migration warning:", e.message); }
+    }
   } catch (err) { console.error("Auto-migrate warning:", err.message); }
 }
 

@@ -103,6 +103,9 @@ const Header = () => {
               <Button component={Link} to="/contact" sx={{ color: isActive("/contact") ? "#F5A623" : "#fff", fontWeight: 600, fontSize: "1rem", "&:hover": { color: "#F5A623" } }}>
                 Contact
               </Button>
+              <Button component={Link} to="/school-uniforms" sx={{ color: isActive("/school-uniforms") ? "#F5A623" : "#fff", fontWeight: 600, fontSize: "1rem", "&:hover": { color: "#F5A623" } }}>
+                School Uniforms
+              </Button>
             </Box>
 
             {/* CTA */}
@@ -196,6 +199,12 @@ const Header = () => {
               <ListItemText primary={item.label} slotProps={{ primary: { fontSize: 16, fontWeight: 500 } }} />
             </ListItem>
           ))}
+          <ListItem
+            component={Link} to="/school-uniforms" onClick={closeMobile}
+            sx={{ color: isActive("/school-uniforms") ? "#F5A623" : "#fff", py: 1.5 }}
+          >
+            <ListItemText primary="School Uniforms" slotProps={{ primary: { fontSize: 16, fontWeight: 500 } }} />
+          </ListItem>
         </List>
         <Box sx={{ p: 2, borderTop: "1px solid rgba(255,255,255,0.1)" }}>
           <Button

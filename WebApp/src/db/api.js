@@ -82,6 +82,7 @@ export const userLogin = (data) => userRequest("/api/users/login", { method: "PO
 export const getUserProfile = () => userRequest("/api/users/me");
 export const getMyQuotes = () => userRequest("/api/users/my-quotes");
 export const getMyOrders = () => userRequest("/api/users/my-orders");
+export const getMyUniformOrders = () => userRequest("/api/users/my-uniform-orders");
 export const forgotPassword = (email) => userRequest("/api/users/forgot-password", { method: "POST", body: JSON.stringify({ email }) });
 export const resetPassword = (token, password) => userRequest("/api/users/reset-password", { method: "POST", body: JSON.stringify({ token, password }) });
 
@@ -153,5 +154,44 @@ export async function getReviews() {
 export async function submitReview(data) {
   const res = await fetch(`${API_BASE}/api/reviews`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
   if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.error || "Failed to submit review"); }
+  return res.json();
+}
+
+// Schools (admin)
+export const getSchools = () => request("/api/schools");
+export const createSchool = (data) => request("/api/schools", { method: "POST", body: JSON.stringify(data) });
+export const updateSchool = (id, data) => request(`/api/schools/${id}`, { method: "PUT", body: JSON.stringify(data) });
+export const deleteSchool = (id) => request(`/api/schools/${id}`, { method: "DELETE" });
+
+// School Uniforms (admin + public)
+export const getSchoolUniforms = (params) => request(`/api/school-uniforms${qs(params)}`);
+export const createSchoolUniform = (data) => request("/api/school-uniforms", { method: "POST", body: JSON.stringify(data) });
+export const updateSchoolUniform = (id, data) => request(`/api/school-uniforms/${id}`, { method: "PUT", body: JSON.stringify(data) });
+export const deleteSchoolUniform = (id) => request(`/api/school-uniforms/${id}`, { method: "DELETE" });
+
+// Uniform Orders (admin + public)
+export const getUniformOrders = (params) => request(`/api/uniform-orders${qs(params)}`);
+export const updateUniformOrder = (id, data) => request(`/api/uniform-orders/${id}`, { method: "PUT", body: JSON.stringify(data) });
+
+// School Coupons (admin)
+export const getSchoolCoupons = (params) => request(`/api/school-coupons${qs(params)}`);
+export const createSchoolCoupon = (data) => request("/api/school-coupons", { method: "POST", body: JSON.stringify(data) });
+export const updateSchoolCoupon = (id, data) => request(`/api/school-coupons/${id}`, { method: "PUT", body: JSON.stringify(data) });
+export const deleteSchoolCoupon = (id) => request(`/api/school-coupons/${id}`, { method: "DELETE" });
+
+// Public coupon validation
+export async function validateCoupon(data) {
+  const res = await fetch(`${API_BASE}/api/school-coupons/validate`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+  if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.error || "Invalid coupon"); }
+  return res.json();
+}
+export async function createUniformOrder(data) {
+  const res = await fetch(`${API_BASE}/api/uniform-orders/create`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+  if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.error || "Failed to create order"); }
+  return res.json();
+}
+export async function verifyUniformPayment(data) {
+  const res = await fetch(`${API_BASE}/api/uniform-orders/verify`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+  if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.error || "Verification failed"); }
   return res.json();
 }
